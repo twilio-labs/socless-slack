@@ -1,0 +1,224 @@
+service: socless-slack
+
+provider:
+  name: aws
+  runtime: python3.7
+  variableSyntax: "\\${{([ ~:a-zA-Z0-9._\\'\",\\-\\/\\(\\)]+?)}}"
+  stage: ${{opt:stage}}
+  region: ${{opt:region}}
+  versionFunctions: false
+  memorySize: 128
+  timeout: 30
+  role: ${{cf:${{self:custom.socless}}.LambdaExecutionRoleArn}}
+  environment:
+    SOCLESS_VAULT: ${{cf:${{self:custom.socless}}.SoclessVault}}
+    RESULTS_TABLE: ${{cf:${{self:custom.socless}}.ExecutionResultsTable}}
+    SOCLESS_RESULTS_TABLE: ${{cf:${{self:custom.socless}}.ExecutionResultsTable}}
+    SOCLESS_MESSAGE_RESPONSE_TABLE: ${{cf:${{self:custom.socless}}.MessageResponsesTable}}
+    MESSAGE_RESPONSES_TABLE: ${{cf:${{self:custom.socless}}.MessageResponsesTable}}
+    SOCLESS_BOT_TOKEN: ${{ssm:/socless/slack/bot_token~true}}
+    SOCLESS_USER_TOKEN: ${{ssm:/socless/slack/bot_token_user~true}}
+
+  vpc:
+    securityGroupIds:
+      - ${{cf:${{self:custom.socless}}.LambdaVpcSG}}
+    subnetIds:
+      - ${{cf:${{self:custom.socless}}.PrivateFunctionSubnet}}
+  apiGateway:
+    restApiId: ${{cf:${{self:custom.socless}}.APIGatewayID}}
+    restApiRootResourceId: ${{cf:${{self:custom.socless}}.APIGatewayRootResourceId}}
+
+
+plugins:
+  - serverless-package-python-functions
+
+package:
+  individually: true
+
+custom:
+  socless: socless-${{self:provider.stage}}
+  pkgPyFuncs:
+    buildDir: build
+    globalRequirements:
+      - functions/requirements.txt
+    globalIncludes:
+      - ./common_files
+  slash_command: ${{ssm:/socless/slack/slash_command}}
+  scheduleEnabled:
+    dev: false
+    prod: true
+    sandbox: false
+
+
+functions:
+  SlackEndpoint:
+    handler: lambda_function.lambda_handler
+    name: _socless_slack_endpoint
+    description: Receives messages from Slack
+    environment:
+      AWAIT_MESSAGE_RESPONSE_ARN: ${{cf:${{self:custom.socless}}.AwaitMessageResponseActivity}}
+      SLACK_SIGNING_SECRET: ${{ssm:/socless/slack/signing_secret~true}}
+      HELP_TEXT: ${{ssm:/socless/slack_endpoint/help_text~true}}
+    package:
+      include:
+        - functions/slack_endpoint
+    events:
+      - http:
+          path: /slack
+          method: post
+          cors: true
+      - schedule:
+          name: SlackEndpointWarmStart_SOC
+          description: Triggers SlackEndpoint every 5 minutes to keep it warm
+          rate: cron(0/5 * * * ? *)
+          enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
+          input: {"_keepwarm": true}
+
+  FindUser:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_find_user
+    description: Socless Slack integration find a user's profile in Slack
+    package:
+      include:
+        - functions/find_user
+
+
+  PromptForConfirmation:
+    handler: lambda_function.lambda_handler
+    name: _socless_slack_prompt_for_confirmation
+    description: Socless Slack integration to prompt a user for a Yes/No confirmation
+    environment:
+      SAVE_MESSAGE_RESPONSE_MACHINE: ${{cf:${{self:custom.socless}}.SaveMessageResponseTaskToken}}
+    package:
+      include:
+        - functions/prompt_for_confirmation
+
+
+  PromptForResponse:
+    handler: lambda_function.lambda_handler
+    name: _socless_slack_prompt_for_response
+    description: Socless Slack integration to prompt a user for a text-based response
+    environment:
+      SAVE_MESSAGE_RESPONSE_MACHINE: ${{cf:${{self:custom.socless}}.SaveMessageResponseTaskToken}}
+      SLACK_SLASH_COMMAND: ${{self:custom.slash_command}}
+    package:
+      include:
+        - functions/prompt_for_response
+
+  SendMessage:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_send_message
+    description: Socless Slack integration to send messages without expecting responses
+    package:
+      include:
+        - functions/send_message
+
+  SendDialog:
+    handler: lambda_function.lambda_handler
+    name: _socless_slack_send_dialog
+    description: Send a dialog into Slack
+    environment:
+      SAVE_MESSAGE_RESPONSE_MACHINE: ${{cf:${{self:custom.socless}}.SaveMessageResponseTaskToken}}
+    package:
+      include:
+        - functions/send_dialog
+    events:
+      - schedule:
+          name: SendDialogWarmStart_SOC
+          description: Triggers SendDialog every 5 minutes to keep it warm
+          rate: cron(0/5 * * * ? *)
+          enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
+          input: {"_keepwarm": true}
+
+  CreateChannel:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_create_channel
+    description: Create a slack channel
+    package:
+      include:
+        - functions/create_channel
+
+  CheckIfUserInChannel:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_check_user_in_channel
+    description: Check if user is in a channel
+    package:
+      include:
+        - functions/check_user_in_channel
+
+  SetChannelTopic:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_set_channel_topic
+    description: Set topic for a channel
+    package:
+      include:
+        - functions/set_channel_topic
+
+  InviteToChannel:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_invite_to_channel
+    description: invite a slack member to channel
+    package:
+      include:
+        - functions/invite_to_channel
+
+  ListChannels:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_list_channels
+    description: list all channels
+    package:
+      include:
+        - functions/list_channels
+
+resources:
+  Outputs:
+    FindUser:
+      Description: ARN of Socless Slack integration to find a Slack User based on their username
+      Value:
+        Fn::Sub: ${FindUserLambdaFunction.Arn}
+
+    PromptForConfirmation:
+      Description: ARN of Socless Slack integration to prompt a user for a Yes/No confirmation
+      Value:
+        Fn::Sub: ${PromptForConfirmationLambdaFunction.Arn}
+
+    PromptForResponse:
+      Description: ARN of Socless Slack integration to prompt a user for a text-based response
+      Value:
+        Fn::Sub: ${PromptForResponseLambdaFunction.Arn}
+
+    SendMessage:
+      Description: ARN of Socless Slack integration to send messages without expecting responses
+      Value:
+        Fn::Sub: ${SendMessageLambdaFunction.Arn}
+
+    SendDialog:
+      Description: ARN of Socless Slack integration for ingesting Socless integration commands from Slack
+      Value:
+        Fn::Sub: ${SendDialogLambdaFunction.Arn}
+
+    CreateChannel:
+      Description: ARN of Socless Slack integration to create a channel
+      Value:
+        Fn::Sub: ${CreateChannelLambdaFunction.Arn}
+
+    CheckIfUserInChannel:
+      Description: ARN of Socless Slack integration to check if user is in a channel
+      Value:
+          Fn::Sub: ${CheckIfUserInChannelLambdaFunction.Arn}
+
+    SetChannelTopic:
+      Description: ARN of Socless Slack integration to set topic for a channel
+      Value:
+          Fn::Sub: ${SetChannelTopicLambdaFunction.Arn}
+
+    InviteToChannel:
+      Description: ARN of Socless Slack integration to invite a member to channel
+      Value:
+        Fn::Sub: ${InviteToChannelLambdaFunction.Arn}
+
+    ListChannels:
+      Description: ARN of Socless Slack integration to list all channels
+      Value:
+        Fn::Sub: ${ListChannelsLambdaFunction.Arn}
+
