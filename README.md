@@ -100,4 +100,4 @@ If your Socless deployment is successful, you will see a URL that ends in `/slac
 5. Click save.
 
 
-Your Slack Bot is not completely configured for use within Socless
+Your Slack Bot is now completely configured for use within Socless
