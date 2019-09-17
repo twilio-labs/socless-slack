@@ -52,7 +52,7 @@ def handle_state(context, receiver, target_type, target, text, prompt_text='', y
     execution_id = context.get('execution_id')
     if resp.data['ok']:
         socless_dispatch_outbound_message(receiver, message_id, investigation_id, execution_id, resp.data)
-        return {"response": resp.data, "message_id": message_id}
+        return {"response": resp.data, "message_id": message_id, "slack_id" : target_id}
     else:
         raise Exception(f"Failed to initiate human response workflow: {resp.data}")
 

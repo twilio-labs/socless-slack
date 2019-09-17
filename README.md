@@ -1,14 +1,18 @@
 # socless-slack
 
 # Deployment Instructions
+
 ## Prerequisites
+
 - A Slack instance
 - Permissions to create a Slack bot
 - Socless Automation Framework deployed in an AWS Account
 
 ## Setting up a Slack bot
+
 This integration requires a Slack bot setup and configured.
 To setup a Slack bot:
+
 1. In a web browser, log into the Slack instance you want your bot to exist in
 2. Navigate to api.slack.com/apps and hit `Create New App`
 3. Enter a name for your application. The tutorial will use `socless-bot`
@@ -26,8 +30,8 @@ To setup a Slack bot:
 
 *Tip:* Consider configuring one Slack bot for each Socless environment you have. Doing so will simplify playbook testing
 
-
 ## Configure Parameters in AWS SSM Parameter Store
+
 Configure the below parameters in AWS Systems Manager (SSM) Parameter Store in the region(s) you plan to deploy your Socless Slack integrations
 
 | Key                               | Value description                                                                                                                                                         | Parameter Type |
@@ -36,7 +40,6 @@ Configure the below parameters in AWS Systems Manager (SSM) Parameter Store in t
 | /socless/slack/slash_command      | The name you'll give the slash command for your bot e.g /socless-bot                                                                                                      | String         |
 | /socless/slack/signing_secret     | The signing secret for your bot found on the "App Credentials" section of the "Basic Information" page for your app                                                       | SecureString   |
 | /socless/slack_endpoint/help_text | Help text that your Socless Slack endpoints will respond with in case of failure e.g. "socless-bot experienced an error. Please contact the security team for assistance" | SecureString   |
-
 
 
 To configure the parameters,

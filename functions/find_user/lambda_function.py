@@ -40,7 +40,7 @@ def handle_state(username,exclude_bots="false"):
     result['profile']['last_name'] = profile.get('last_name') or 'N/A'
     result['name'] = user.get('name') or 'N/A'
     result['profile']['email'] = profile.get('email') or 'N/A'
-    result["id"] = user['id']
+    result['id'] = user['id']
     return result
 
 def lambda_handler(event,context):
