@@ -29,7 +29,7 @@ def handle_state(context,receiver,target,target_type,message_template,response_d
         socless_dispatch_outbound_message(receiver,message_id,investigation_id,execution_id,message)
     else:
         raise Exception(f"Human Reponse workflow failed to initiate because slack_client failed to send message: {r.data}")
-    return {"response": r.data, "message_id": message_id}
+    return {"response": r.data, "message_id": message_id, "slack_id" : target_id}
 
 
 def lambda_handler(event,context):
