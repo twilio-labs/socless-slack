@@ -1,6 +1,6 @@
 # socless-slack
 
-Slack chatbot integrations for the [SOCless framework](https://github.com/twilio-labs/socless). Visit the SOCless framework tutorial on Slack integrations to get started https://twilio-labs.github.io/socless/tutorial-interacting-with-humans-via-slack/
+Slack chatbot integrations for the [SOCless framework](https://twilio-labs.github.io/socless). Visit the SOCless framework tutorial on Slack integrations to get started https://twilio-labs.github.io/socless/tutorial-interacting-with-humans-via-slack/
 
 # Deployment Instructions
 
