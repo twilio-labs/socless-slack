@@ -62,7 +62,7 @@ Repeat the process for all parameters that need to be configured.
 Clone this repository to your projects folder using the command below
 
 ```
-git clone git@github.com:twilio/socless-slack.git
+git clone git@github.com:twilio-labs/socless-slack.git
 ```
 
 Change into the `socless-slack` repository and setup deployment dependencies by running the commands below
