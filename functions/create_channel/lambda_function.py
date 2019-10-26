@@ -4,15 +4,14 @@ import slack
 
 
 def handle_state(channel_name, is_private):
+    """Create private or public slack channel.
+    Args:
+        channel_name (str): The name of channel to be created.
+        is_private (boolean): if the channel private
+    Token_Type: xoxp
+    Note:
+        - See https://api.slack.com/methods/conversations.create for more details on how to create private channel
     """
-       Create slack channel
-       Args:
-                  channel_name (str): The name of channel to be created.
-                  is_private (boolean): if the channel private
-       Token_Type: xoxp
-       Note:
-                  - See https://api.slack.com/methods/conversations.create for more details on how to create private channel
-       """
 
     SOCLESS_USER_TOKEN = os.environ['SOCLESS_USER_TOKEN']
     slack_api_client = slack.WebClient(SOCLESS_USER_TOKEN)
@@ -29,9 +28,10 @@ def handle_state(channel_name, is_private):
             "channel_name": channel_name
         }
     except Exception as e:
-        s = str(e)
-        err_msg = s.split("'detail': ", 1)[1]
-        err_msg = err_msg[:len(err_msg) - 1]
+        print(e)
+        err_msg =f"{str(e.__class__)} + {str(e)}"
+        if res:
+            err_msg = f"{err_msg} {str(res)}"
         return {
             "ok": False,
             "error": err_msg

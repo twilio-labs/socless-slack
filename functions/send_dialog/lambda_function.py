@@ -7,7 +7,7 @@ SLACK_BOT_TOKEN = os.environ["SOCLESS_BOT_TOKEN"]
 def handle_state(context, receiver, trigger_id, title, elements, submit_label='Submit',state='n/a'):
     """Send a dialog into Slack
 
-     Args:
+    Args:
         context (dict): The state context object. This is included automatically by Socless Core and SHOULD NOT be supplied by the user when creating a playbook
         receiver (str): The name of the State in the playbook that will receive the dialog response
         trigger_id (str): trigger_id required to open a Dialog
@@ -20,7 +20,7 @@ def handle_state(context, receiver, trigger_id, title, elements, submit_label='S
         - See https://api.slack.com/dialogs for more details on to create elements for a slack dialog
         - This integration starts a Human Response workflow. When used in a playbook, it needs to be followed by a Task state that uses the _socless_outbound_message_response Activity to receive the response from a user
         - A user can respond to a dialog by either submitting it or cancelling it. The response payload contains a key named `type` that can be either `dialog_submission` or `dialog_cancellation`. In your playboks,
-          be sure to check what type of response a user provided before acting on it.
+            be sure to check what type of response a user provided before acting on it.
     """
     message_id = socless_gen_id()
 

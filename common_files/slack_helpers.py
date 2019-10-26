@@ -72,6 +72,8 @@ def paginated_api_call(api_method, response_objects_name, **kwargs):
         response_objects = r.get(response_objects_name)
         if response_objects is not None:
             for channel in r[response_objects_name]:
+                print(channel)
+                
                 channel_name = channel.get('name')
                 ret.append(channel_name)
         metadata = r.get("response_metadata")

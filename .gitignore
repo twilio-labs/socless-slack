@@ -36,3 +36,4 @@ venv
 # Python binaries
 .pyc
 __pycache__
+.tox

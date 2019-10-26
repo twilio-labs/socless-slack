@@ -25,6 +25,7 @@ def handle_state(username,exclude_bots="false"):
     """
     exclude_bots = True if exclude_bots == "true" else False
     search_result = find_user(username)
+
     if not search_result['found']:
         return {"result": 'false'}
 

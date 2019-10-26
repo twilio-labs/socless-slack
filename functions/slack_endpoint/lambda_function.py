@@ -79,16 +79,16 @@ class SlashCommandHandler(BaseResponseHandler):
         to the relevant playbook
         ```
             {
-            	"user_id": "U********",
-            	"response_url": "https://hooks.slack.com/commands/T******/3*******/G************",
-            	"text": "07-11-2018",
-            	"trigger_id": "3*******.2******.4*********************v*********",
-            	"channel_id": "D********",
-            	"team_id": "T********",
-            	"command": "/slash-command",
-            	"team_domain": "s******",
-            	"user_name": "u*******",
-            	"channel_name": "directmessage"
+                "user_id": "U********",
+                "response_url": "https://hooks.slack.com/commands/T******/3*******/G************",
+                "text": "07-11-2018",
+                "trigger_id": "3*******.2******.4*********************v*********",
+                "channel_id": "D********",
+                "team_id": "T********",
+                "command": "/slash-command",
+                "team_domain": "s******",
+                "user_name": "u*******",
+                "channel_name": "directmessage"
             }
         ```
 
