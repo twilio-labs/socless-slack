@@ -28,8 +28,7 @@ def handle_state(channel_name, is_private):
             "channel_name": channel_name
         }
     except Exception as e:
-        print(e)
-        err_msg =f"{str(e.__class__)} + {str(e)}"
+        err_msg =f"{str(e.__class__)} {str(e)}"
         if res:
             err_msg = f"{err_msg} {str(res)}"
         return {

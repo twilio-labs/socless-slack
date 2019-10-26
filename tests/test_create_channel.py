@@ -33,4 +33,4 @@ def test_create_channel(slack_client_conversations_create_mock):
 
     result = lambda_function.handle_state('testing', False)
     assert result["ok"] == False
-    assert result["error"] == "<class 'KeyError'> + 'channel' {'ok': False, 'error': 'name_taken', 'detail': 'A channel cannot be created with the given name.'}"
+    assert result["error"] == "<class 'KeyError'> 'channel' {'ok': False, 'error': 'name_taken', 'detail': 'A channel cannot be created with the given name.'}"
