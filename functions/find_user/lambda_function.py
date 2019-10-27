@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 from socless import *
-from slack_helpers import slack_client, find_user
-import os
+from slack_helpers import find_user
 
 
 def handle_state(username,exclude_bots="false"):
