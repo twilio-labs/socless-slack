@@ -1,5 +1,5 @@
 from socless import *
-from slack_helpers import slack_client, find_user, get_channel_id, paginated_api_call
+from slack_helpers import slack_client, paginated_api_call
 
 
 def handle_state():
