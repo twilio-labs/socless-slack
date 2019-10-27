@@ -5,8 +5,7 @@
 import os, json, mock, boto3, pytest
 from unittest.mock import patch, Mock, MagicMock
 
-# import common_files.slack_helpers as slack_helpers
-from tests.conftest import setup_mock_common_files
+from tests.conftest import setup_mock_slack_helpers
 
 # begin testing lambda function
 
@@ -53,7 +52,7 @@ def test_find_user_lambda():
     }
     
     #setup mock find_user slack call
-    started_patcher = setup_mock_common_files('find_user', find_user_mock_return_value_data)
+    started_patcher = setup_mock_slack_helpers({'find_user' : find_user_mock_return_value_data})
     
     import functions.find_user.lambda_function as lambda_function
 
@@ -78,7 +77,7 @@ def test_find_user_lambda_not_found():
     }
     
     #setup mock find_user slack call
-    started_patcher = setup_mock_common_files('find_user', find_user_mock_return_value_data)
+    started_patcher = setup_mock_slack_helpers({'find_user' : find_user_mock_return_value_data})
     
     import functions.find_user.lambda_function as lambda_function
 
@@ -133,7 +132,7 @@ def test_find_user_lambda_exclude_bots():
     }
     
     #setup mock find_user slack call
-    started_patcher = setup_mock_common_files('find_user', find_user_mock_return_value_data)
+    started_patcher = setup_mock_slack_helpers({'find_user' : find_user_mock_return_value_data})
     
     import functions.find_user.lambda_function as lambda_function
 

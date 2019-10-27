@@ -1,17 +1,16 @@
-'''Test invite_to_channel lambda function'''
+'''Test list_channels lambda function'''
 # pylint: disable=protected-access
 # pylint: disable=wrong-import-position
 # pylint: disable=redefined-outer-name
 import os, json, mock, boto3, pytest
 from unittest.mock import patch, Mock, MagicMock
 
+from tests.conftest import setup_mock_slack_helpers
 
 # begin testing lambda function
-import functions.invite_to_channel.lambda_function as lambda_function
 
-@patch('slack.WebClient.conversations_invite')
-def test_invite_to_channel(slack_conversations_invite_mock):
-    channel_invite_mock_return_data = {
+def test_list_channels():
+    paginated_api_call_mock_return_data = {
         "ok": True,
         "channel": {
             "id": "C012AB3CD",
@@ -54,24 +53,14 @@ def test_invite_to_channel(slack_conversations_invite_mock):
             "locale": "en-US"
         }
     }
-    slack_conversations_invite_mock.return_value = channel_invite_mock_return_data
 
-    result = lambda_function.handle_state('C012AB3CD', 'WX8675309')
+    started_patcher = setup_mock_slack_helpers({'paginated_api_call' : paginated_api_call_mock_return_data })
 
-    assert result == { 'created_channel_id': 'C012AB3CD', 'ok': True }
+    import functions.list_channels.lambda_function as lambda_function
 
-@patch('slack.WebClient.conversations_invite')
-def test_invite_to_channel_failure(slack_conversations_invite_mock):
-    channel_invite_mock_return_data = {
-        "ok": False,
-        "error": "method_not_supported_for_channel_type"
-    }
+    result = lambda_function.handle_state()
 
-    slack_conversations_invite_mock.return_value = channel_invite_mock_return_data
+    assert result == { "channels": paginated_api_call_mock_return_data }
 
-    result = lambda_function.handle_state('C012AB3CD', 'WX8675309')
+    started_patcher.stop()
 
-    assert result == {
-        "ok": False,
-        "error": "<class 'KeyError'> 'channel' {'ok': False, 'error': 'method_not_supported_for_channel_type'}"
-    }

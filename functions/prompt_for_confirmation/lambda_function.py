@@ -1,6 +1,6 @@
 from socless import socless_template_string, socless_dispatch_outbound_message, socless_bootstrap
 from socless.utils import gen_id
-from slack_helpers import find_user, get_channel_id, slack_client
+from slack_helpers import get_channel_id, slack_client
 
 
 def handle_state(context, receiver, target_type, target, text, prompt_text='', yes_text='Yes', no_text='No'):

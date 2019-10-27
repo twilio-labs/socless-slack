@@ -8,34 +8,60 @@ from common_files.slack_helpers import find_user, get_channel_id, paginated_api_
 # responses.add_passthru('https://')# moto+requests needs this
 # responses.add_passthru('http://')# moto+requests needs this
 
-def setup_mock_common_files(function_name_to_mock, side_effect_data):
-    common_files = MagicMock()
 
+def setup_mock_slack_helpers(side_effects={}):
     slack_helpers_mock = MagicMock()
-    # slack_helpers_mock.slack_client.return_value = True
     
-    mocked_side_effects = {
+    available_mocks = {
         'slack_client' : slack_helpers_mock.slack_client,
         'find_user' : slack_helpers_mock.find_user,
         'get_channel_id' : slack_helpers_mock.get_channel_id,
-        'paginate_api_call' : slack_helpers_mock.paginate_api_call
+        'paginated_api_call' : slack_helpers_mock.paginated_api_call
     }
-
-    mocked_side_effects[function_name_to_mock].side_effect = [side_effect_data]
 
     modules = {
-        'slack_helpers': slack_helpers_mock,
-        'slack_helpers.slack_client': mocked_side_effects['slack_client'],
-        'slack_helpers.find_user': mocked_side_effects['find_user'],
-        'slack_helpers.get_channel_id': mocked_side_effects['get_channel_id'],
-        'slack_helpers.paginate_api_call': mocked_side_effects['paginate_api_call']
+        'slack_helpers': slack_helpers_mock
     }
 
-    import_patcher = patch.dict('sys.modules', modules)
-    import_patcher.start()
-    return import_patcher
-    # import_patcher.stop()
+    # create mock modules with any supplied side effects
+    for key in available_mocks:
+        if key in side_effects:
+            #key found, convert to list if not already list
+            formatted = side_effects[key] if isinstance(side_effects[key], list) else [side_effects[key]]
+            available_mocks[key].side_effect = formatted
+        modules[f"slack_helpers.{key}"] = available_mocks[key]
 
+    # add mocked modules to system for test
+    module_import_patcher = patch.dict('sys.modules', modules)
+    module_import_patcher.start()
+    return module_import_patcher
+
+
+def setup_mock_socless(side_effects={}):
+    socless_mock = MagicMock()
+    
+    available_mocks = {
+        'socless' : MagicMock(),
+        'socless_template_string' : MagicMock(),
+        'socless_dispatch_outbound_message' : MagicMock(),
+        'utils' : MagicMock(),
+    }
+
+    modules = {
+        'socless': socless_mock
+    }
+
+    # create mock modules with any supplied side effects
+    for key in available_mocks:
+        if key in side_effects:
+            #key found, convert to list if not already list
+            formatted = side_effects[key] if isinstance(side_effects[key], list) else [side_effects[key]]
+            available_mocks[key].side_effect = formatted
+        modules[f"socless.{key}"] = available_mocks[key]
+
+    module_import_patcher = patch.dict('sys.modules', modules)
+    module_import_patcher.start()
+    return module_import_patcher
 
 
 # def setup_vault():
