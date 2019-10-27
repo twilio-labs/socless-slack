@@ -1,6 +1,5 @@
 from socless import *
-from slack_helpers import slack_client, find_user, get_channel_id
-import slack
+from slack_helpers import slack_client, get_channel_id
 
 
 def handle_state(context, message_template, target, target_type):
