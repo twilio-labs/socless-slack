@@ -1,5 +1,5 @@
-import uuid, os
-from slack_helpers import slack_client, find_user, get_channel_id
+import os
+from slack_helpers import slack_client, get_channel_id
 from socless import socless_bootstrap, socless_dispatch_outbound_message, socless_template_string
 from socless.utils import gen_id
 
