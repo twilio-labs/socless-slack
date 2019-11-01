@@ -1,4 +1,4 @@
-from socless import socless_template_string, socless_dispatch_outbound_message, socless_bootstrap
+from socless import socless_template_string, socless_dispatch_outbound_message, socless_bootstrap, init_human_interaction
 from socless.utils import gen_id
 from slack_helpers import find_user, get_channel_id, slack_client
 
