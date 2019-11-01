@@ -3,10 +3,12 @@ from socless.utils import gen_id
 from slack_helpers import find_user, get_channel_id, slack_client
 
 
-def handle_state(context, receiver, target_type, target, text, prompt_text='', yes_text='Yes', no_text='No'):
+def handle_state(context, target_type, target, text, receiver = '', prompt_text='', yes_text='Yes', no_text='No'):
     """
     Send a Slack Message and store the message id for the message
     """
+    USE_NEW_INTERACTION = 'task_token' in context
+
     if not all([target_type, target, text]):
         raise Exception("Incomplete inputs: target, target_type and text must be supplied")
     target_id = get_channel_id(target, target_type)
@@ -47,14 +49,20 @@ def handle_state(context, receiver, target_type, target, text, prompt_text='', y
     ATTACHMENT_NO_ACTION['text'] = no_text
     ATTACHMENT_TEMPLATE['actions'] = [ATTACHMENT_YES_ACTION, ATTACHMENT_NO_ACTION]
 
+    if USE_NEW_INTERACTION:
+        init_human_interaction(context,payload, message_id)
+
     resp = slack_client.chat_postMessage(channel=target_id, text=text, attachments=[ATTACHMENT_TEMPLATE], as_user=True)
-    investigation_id = context['artifacts']['event']['investigation_id']
-    execution_id = context.get('execution_id')
-    if resp.data['ok']:
-        socless_dispatch_outbound_message(receiver, message_id, investigation_id, execution_id, resp.data)
-        return {"response": resp.data, "message_id": message_id, "slack_id" : target_id}
-    else:
-        raise Exception(f"Failed to initiate human response workflow: {resp.data}")
+    json_resp = resp.json()
+
+    if not json_resp["ok"]:
+        raise Exception(json_resp['error'])
+
+    if not USE_NEW_INTERACTION:
+        investigation_id = context['artifacts']['event']['investigation_id']
+        execution_id = context.get('execution_id')
+        socless_dispatch_outbound_message(receiver,message_id,investigation_id,execution_id,payload)
+    return {'response': json_resp, "message_id": message_id}
 
 
 def lambda_handler(event, context):
