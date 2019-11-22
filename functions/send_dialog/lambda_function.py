@@ -8,7 +8,7 @@ SLACK_BOT_TOKEN = os.environ["SOCLESS_BOT_TOKEN"]
 def handle_state(context, trigger_id, title, elements, receiver='', submit_label='Submit',state='n/a'):
     """Send a dialog into Slack
 
-     Args:
+    Args:
         context (dict): The state context object. This is included automatically by Socless Core and SHOULD NOT be supplied by the user when creating a playbook
         receiver (str): The name of the State in the playbook that will receive the dialog response
         trigger_id (str): trigger_id required to open a Dialog
