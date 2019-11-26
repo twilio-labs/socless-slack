@@ -3,7 +3,7 @@ from socless.utils import gen_id
 from slack_helpers import find_user, get_channel_id, slack_client
 
 
-def handle_state(context, target_type, target, text, receiver = '', prompt_text='', yes_text='Yes', no_text='No'):
+def handle_state(context, target_type, target, text, receiver='', prompt_text='', yes_text='Yes', no_text='No'):
     """
     Send a Slack Message and store the message id for the message
     """
@@ -49,20 +49,25 @@ def handle_state(context, target_type, target, text, receiver = '', prompt_text=
     ATTACHMENT_NO_ACTION['text'] = no_text
     ATTACHMENT_TEMPLATE['actions'] = [ATTACHMENT_YES_ACTION, ATTACHMENT_NO_ACTION]
 
+    payload = {
+        "text": text,
+        "ATTACHMENT_TEMPLATE" : ATTACHMENT_TEMPLATE
+    }
+
     if USE_NEW_INTERACTION:
         init_human_interaction(context,payload, message_id)
 
     resp = slack_client.chat_postMessage(channel=target_id, text=text, attachments=[ATTACHMENT_TEMPLATE], as_user=True)
-    json_resp = resp.json()
 
-    if not json_resp["ok"]:
-        raise Exception(json_resp['error'])
+    if not resp.data['ok']:
+        raise Exception(resp.data['error'])
 
     if not USE_NEW_INTERACTION:
         investigation_id = context['artifacts']['event']['investigation_id']
         execution_id = context.get('execution_id')
         socless_dispatch_outbound_message(receiver,message_id,investigation_id,execution_id,payload)
-    return {'response': json_resp, "message_id": message_id}
+    
+    return {'response': resp.data, "message_id": message_id, "slack_id" : target_id}
 
 
 def lambda_handler(event, context):
