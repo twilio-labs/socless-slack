@@ -105,7 +105,7 @@ def setup_tables():
         dynamodb_client.create_table(
             TableName=table_name,
             KeySchema=[{'AttributeName': pkey, 'KeyType': 'HASH'}],
-            AttributeDefinitions=[]
+            AttributeDefinitions=[{"AttributeName" : pkey, "AttributeType" : 'S'}]
         )
 
     return dynamodb_client
