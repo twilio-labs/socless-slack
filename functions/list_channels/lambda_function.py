@@ -1,14 +1,13 @@
 from socless import *
-from slack_helpers import slack_client, find_user, get_channel_id, paginated_api_call
+from slack_helpers import slack_client, paginated_api_call
 
 
 def handle_state():
     """
-           Compiles list of all available channels
-           :return: list of channels
-           Note: https://api.slack.com/methods/conversations.list
-           """
-
+    Compiles list of all available channels
+    :return: list of channels
+    Note: https://api.slack.com/methods/conversations.list
+    """
     ret = paginated_api_call(slack_client.conversations_list,
                              "channels",
                              exclude_archived=0,

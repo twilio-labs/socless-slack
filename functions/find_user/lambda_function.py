@@ -16,7 +16,7 @@ from slack_helpers import slack_client, find_user
 import os
 
 
-def handle_state(username,exclude_bots="false"):
+def handle_state(username, exclude_bots="false"):
     """
     Find a Slack user by their username
     Params:
@@ -35,7 +35,7 @@ def handle_state(username,exclude_bots="false"):
     result = {}
     result['result'] = 'true'
     result['profile'] = {}
-    profile = user.get('profile',{})
+    profile = user.get('profile', {})
     result['profile']['first_name'] = profile.get('first_name') or 'N/A'
     result['profile']['last_name'] = profile.get('last_name') or 'N/A'
     result['name'] = user.get('name') or 'N/A'
@@ -43,5 +43,6 @@ def handle_state(username,exclude_bots="false"):
     result['id'] = user['id']
     return result
 
-def lambda_handler(event,context):
-    return socless_bootstrap(event,context,handle_state)
+
+def lambda_handler(event, context):
+    return socless_bootstrap(event, context, handle_state)

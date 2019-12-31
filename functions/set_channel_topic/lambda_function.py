@@ -2,6 +2,7 @@ from socless import *
 import slack
 import os
 
+
 def handle_state(channel_id, topic):
     """
     Set topic for a channel
