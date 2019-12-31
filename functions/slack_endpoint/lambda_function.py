@@ -1,7 +1,7 @@
 import boto3
 from botocore.exceptions import ClientError
 import simplejson as json, urllib.request, urllib.parse, urllib.error, time, os, hmac, hashlib, copy
-from socless import *
+from socless import end_human_interaction, socless_log
 from urllib.parse import parse_qsl
 
 
@@ -56,7 +56,7 @@ class BaseResponseHandler(object):
         }
         try:
             self.parse_human_response()
-            socless_post_human_response(self.message_id, self.human_response)
+            end_human_interaction(self.message_id, self.human_response)
         except Exception as e:
             HELP_TEXT = os.environ.get('HELP_TEXT','')
             err_code = f"{e}"
