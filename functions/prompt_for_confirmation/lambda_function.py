@@ -1,6 +1,6 @@
 from socless import socless_template_string, socless_dispatch_outbound_message, socless_bootstrap, init_human_interaction
 from socless.utils import gen_id
-from slack_helpers import find_user, get_channel_id, slack_client
+from slack_helpers import get_channel_id, slack_client
 
 
 def handle_state(context, target_type, target, text, receiver='', prompt_text='', yes_text='Yes', no_text='No'):
@@ -51,11 +51,12 @@ def handle_state(context, target_type, target, text, receiver='', prompt_text=''
 
     payload = {
         "text": text,
-        "ATTACHMENT_TEMPLATE" : ATTACHMENT_TEMPLATE
+        "ATTACHMENT_TEMPLATE": ATTACHMENT_TEMPLATE
     }
 
     if USE_NEW_INTERACTION:
-        init_human_interaction(context,payload, message_id)
+        init_human_interaction(context, payload, message_id)
+
 
     resp = slack_client.chat_postMessage(channel=target_id, text=text, attachments=[ATTACHMENT_TEMPLATE], as_user=True)
 
@@ -65,9 +66,9 @@ def handle_state(context, target_type, target, text, receiver='', prompt_text=''
     if not USE_NEW_INTERACTION:
         investigation_id = context['artifacts']['event']['investigation_id']
         execution_id = context.get('execution_id')
-        socless_dispatch_outbound_message(receiver,message_id,investigation_id,execution_id,payload)
+        socless_dispatch_outbound_message(receiver, message_id, investigation_id, execution_id, payload)
     
-    return {'response': resp.data, "message_id": message_id, "slack_id" : target_id}
+    return {'response': resp.data, "message_id": message_id, "slack_id": target_id}
 
 
 def lambda_handler(event, context):

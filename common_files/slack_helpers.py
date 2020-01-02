@@ -43,6 +43,8 @@ def get_channel_id(channel_name, channel_type):
     if channel_type == 'slack_id':
         channel_id = channel_name
     elif channel_type == 'user':
+        if '@' in channel_name:
+            channel_name = channel_name.split('@')[0]
         user = find_user(channel_name)
         channel_id = user["user"]["id"] if user["found"] else False
         if not channel_id:
@@ -56,7 +58,7 @@ def get_channel_id(channel_name, channel_type):
 def paginated_api_call(api_method, response_objects_name, **kwargs):
     """
     Calls api method and cycles through all pages to get all objects
-    :param method: api method to call
+    :param api_method: api method to call
     :param response_objects_name: name of collection in response json
     :param kwargs: url params to pass to call, additionally to limit and cursor which will be added automatically
     """

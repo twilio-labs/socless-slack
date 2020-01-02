@@ -8,7 +8,7 @@ def handle_state(context, message_template, target, target_type):
     Send a Slack message without expecting a response
     """
     if not all([target_type, target, message_template]):
-            raise Exception("Incomplete parameters supplied. Please supply target, target_type and message_template")
+        raise Exception("Incomplete parameters supplied. Please supply target, target_type and message_template")
 
     target_id = get_channel_id(target, target_type)
     message = socless_template_string(message_template, context)
