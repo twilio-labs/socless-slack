@@ -57,6 +57,7 @@ def handle_state(context, target_type, target, text, receiver='', prompt_text=''
     if USE_NEW_INTERACTION:
         init_human_interaction(context, payload, message_id)
 
+
     resp = slack_client.chat_postMessage(channel=target_id, text=text, attachments=[ATTACHMENT_TEMPLATE], as_user=True)
 
     if not resp.data['ok']:

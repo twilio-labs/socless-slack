@@ -1,4 +1,6 @@
-import simplejson as json, time, os, hmac, hashlib, copy
+import boto3
+from botocore.exceptions import ClientError
+import simplejson as json, urllib.request, urllib.parse, urllib.error, time, os, hmac, hashlib, copy
 from socless import end_human_interaction, socless_log
 from urllib.parse import parse_qsl
 
