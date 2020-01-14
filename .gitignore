@@ -29,6 +29,7 @@ secrets.yml
 
 # Mac OS Files
 .DS_Store
+.vscode
 
 # Venv
 venv
@@ -36,3 +37,5 @@ venv
 # Python binaries
 .pyc
 __pycache__
+
+.localstack

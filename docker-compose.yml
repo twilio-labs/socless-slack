@@ -1,0 +1,38 @@
+version: '2.1'
+
+services:
+  localstack:
+    container_name: "localstack_container"
+    image: localstack/localstack
+    ports:
+      - '4563-4599:4563-4599'
+      - "${PORT_WEB_UI-8080}:${PORT_WEB_UI-8080}"
+    environment:
+      # - SERVICES=${SERVICES- }
+      - DEBUG=${DEBUG- }
+      - DEFAULT_REGION=us-west-1
+      # - DATA_DIR=${DATA_DIR- }
+      # - PORT_WEB_UI=${PORT_WEB_UI- }
+      # - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR- }
+      # - KINESIS_ERROR_PROBABILITY=${KINESIS_ERROR_PROBABILITY- }
+      # - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+      - './.localstack:/tmp/localstack'
+      - '/var/run/docker.sock:/var/run/docker.sock'
+  
+  socless:
+    container_name: "socless_container"
+    image: python:3.7.4
+
+    # build:
+    #   context: .
+    #   dockerfile: DOCKERFILE
+    # entrypoint: 
+    #   - python3
+    depends_on:
+      - localstack
+    volumes:
+      - ./localstack_socless_setup.py
+    command:
+      - ls
+      - python3 "localstack_socless_setup.py"
