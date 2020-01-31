@@ -2,20 +2,24 @@ from socless import *
 import slack
 import os
 
-def handle_state(channel_id, user_id):
-    """
-        Add people to the channel
-          Args:
-                     channel_id (str): Id of channel to invite.
-                     user_id (str):  user id to invite.
-        Token_Type: xoxp
+def handle_state(channel_id, user_ids):
+    """Add people to the channel.
+        Args:
+            channel_id (str): Id of channel to invite.
+            user_ids (str):  user id to invite.
         Note:
-                     - See https://api.slack.com/methods/conversations.invite for more details on how to create private channel
-          """
+            Token_Type: xoxp
+            - See https://api.slack.com/methods/conversations.invite for more details on how to create private channel
+        """
     SOCLESS_USER_TOKEN = os.environ['SOCLESS_USER_TOKEN']
     slack_api_client = slack.WebClient(SOCLESS_USER_TOKEN)
+
+    # if userids is a string (single id), convert to list
+    if isinstance(user_ids, str):
+        user_ids = [ user_ids ]
+
     try:
-        res = slack_api_client.conversations_invite(channel=channel_id, users=[user_id])
+        res = slack_api_client.conversations_invite(channel=channel_id, users=user_ids)
         created_channel_id = res["channel"]['id']
         return {
             "ok": True,

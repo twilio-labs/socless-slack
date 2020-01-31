@@ -30,18 +30,18 @@ def handle_state(channel_name, user_ids, is_private=False):
         print(res)
 
         created_channel_id = res["channel"]['id']
+
         return {
             "ok": True,
             "created_channel_id": created_channel_id,
             "channel_name": channel_name
+            "added_users" : user_ids
         }
     except Exception as e:
         s = str(e)
-        err_msg = s.split("'detail': ", 1)[1]
-        err_msg = err_msg[:len(err_msg) - 1]
         return {
             "ok": False,
-            "error": err_msg
+            "error": s
         }
 
 
