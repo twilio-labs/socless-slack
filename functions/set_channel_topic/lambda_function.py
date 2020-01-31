@@ -8,6 +8,9 @@ def handle_state(channel_id, topic):
     Args:
         channel_id(str): channel_id for the targeted channel
         topic(str): topic to set to channel
+
+    This is currently deprecated for BOT_TOKENS and requires a user token (see:
+    https://api.slack.com/methods/conversations.setTopic).
     """
     topic = topic or ""
     SOCLESS_USER_TOKEN = os.environ['SOCLESS_USER_TOKEN']
