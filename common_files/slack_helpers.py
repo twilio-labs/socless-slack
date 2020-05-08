@@ -2,8 +2,10 @@ import slack
 import os
 
 SOCLESS_BOT_TOKEN = os.environ["SOCLESS_BOT_TOKEN"]
+SOCLESS_USER_TOKEN = os.environ["SOCLESS_USER_TOKEN"]
 
 slack_client = slack.WebClient(SOCLESS_BOT_TOKEN)
+slack_user_client = slack.WebClient(SOCLESS_USER_TOKEN)
 
 
 def find_user(name, page_limit=1000, include_locale="false"):
@@ -43,7 +45,7 @@ def get_profile_via_id(slack_id):
     Args:
         slack_id : (string) slack user id ex. W1234567
     """
-    resp = slack_client.users_profile_get(user=slack_id)
+    resp = slack_user_client.users_profile_get(user=slack_id)
     return resp["profile"]
 
 
