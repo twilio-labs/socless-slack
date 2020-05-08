@@ -11,37 +11,55 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-from socless import *
-from slack_helpers import slack_client, find_user
+from socless import socless_bootstrap
+from slack_helpers import slack_client, find_user, get_profile_via_id
 import os
 
 
-def handle_state(username,exclude_bots="false"):
-    """
-    Find a Slack user by their username
+def handle_state(username="", slack_id="", exclude_bots="false"):
+    """Get a slack user's profile from their username or slack_id.
+
     Params:
-        username: User's Slack name
+        username: User's Slack name ex. ubalogun 
+        slack_id: user's Slack ID ex. W1234567
         exclude_bots: exclude bots from search results
+    Returns:
+        {
+            "result" : (bool)
+            "id" : "W1234567",
+            "name" : "ssnake",
+            "profile" : {
+                "first_name" : "Solid",
+                "last_name" : "Snake",
+                "email" : "snake@outerheaven.com"
+            }
+        }
     """
     exclude_bots = True if exclude_bots == "true" else False
-    search_result = find_user(username)
-    if not search_result['found']:
-        return {"result": 'false'}
+    result = {
+        "result": "true",
+        "id": slack_id,
+        "username": username,
+        "profile": {},
+    }
+    if slack_id:
+        profile = get_profile_via_id(slack_id)
+        result["username"] = profile["display_name"]
+    elif username:
+        search_result = find_user(username)
+        user = search_result.get("user")
+        if not user or exclude_bots and user["is_bot"]:
+            return {"result": "false"}
+        result["id"] = user["id"]
+        result["name"] = user.get("name") or "N/A"
+        profile = user.get("profile", {})
 
-    user = search_result['user']
-    if exclude_bots and user['is_bot']:
-        return {"result": 'false'}
-
-    result = {}
-    result['result'] = 'true'
-    result['profile'] = {}
-    profile = user.get('profile',{})
-    result['profile']['first_name'] = profile.get('first_name') or 'N/A'
-    result['profile']['last_name'] = profile.get('last_name') or 'N/A'
-    result['name'] = user.get('name') or 'N/A'
-    result['profile']['email'] = profile.get('email') or 'N/A'
-    result['id'] = user['id']
+    # Create result Profile from subset of Slack Profile fields
+    result["profile"]["first_name"] = profile.get("first_name") or "N/A"
+    result["profile"]["last_name"] = profile.get("last_name") or "N/A"
+    result["profile"]["email"] = profile.get("email") or "N/A"
     return result
 
-def lambda_handler(event,context):
-    return socless_bootstrap(event,context,handle_state)
+
+def lambda_handler(event, context):
+    return socless_bootstrap(event, context, handle_state)
