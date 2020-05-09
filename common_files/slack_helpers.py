@@ -1,34 +1,52 @@
 import slack
 import os
 
-SOCLESS_BOT_TOKEN = os.environ['SOCLESS_BOT_TOKEN']
+SOCLESS_BOT_TOKEN = os.environ["SOCLESS_BOT_TOKEN"]
+SOCLESS_USER_TOKEN = os.environ["SOCLESS_USER_TOKEN"]
 
 slack_client = slack.WebClient(SOCLESS_BOT_TOKEN)
+slack_user_client = slack.WebClient(SOCLESS_USER_TOKEN)
 
 
-def find_user(name, page_limit=1000, include_locale='false'):
-    """
-    Find a user's Slack profile based on their full or display name
+def find_user(name, page_limit=1000, include_locale="false"):
+    """Find a user's Slack profile based on their full or display name.
     """
     name_lower = name.lower()
     paginate = True
-    next_cursor = ''
+    next_cursor = ""
     while paginate:
-        resp = slack_client.users_list(cursor=next_cursor, limit=page_limit, include_locale=include_locale)
+        resp = slack_client.users_list(
+            cursor=next_cursor, limit=page_limit, include_locale=include_locale
+        )
         data = resp.data
-        next_cursor = resp.data['response_metadata'].get('next_cursor', '')
+        next_cursor = resp.data["response_metadata"].get("next_cursor", "")
         if not next_cursor:
             paginate = False
 
-        for user in data['members']:
+        for user in data["members"]:
             user_names = list(
-                map(str.lower,
-                    [user.get('name', ''), user.get('real_name', ''), user.get('profile', {}).get('real_name', '')]
-                    ))
+                map(
+                    str.lower,
+                    [
+                        user.get("name", ""),
+                        user.get("real_name", ""),
+                        user.get("profile", {}).get("real_name", ""),
+                    ],
+                )
+            )
             if name_lower in user_names:
                 return {"found": True, "user": user}
 
     return {"found": False}
+
+
+def get_profile_via_id(slack_id):
+    """Fetch user's slack profile with their slack_id.
+    Args:
+        slack_id : (string) slack user id ex. W1234567
+    """
+    resp = slack_user_client.users_profile_get(user=slack_id)
+    return resp["profile"]
 
 
 def get_channel_id(channel_name, channel_type):
@@ -40,9 +58,9 @@ def get_channel_id(channel_name, channel_type):
     Returns:
         (string) A Slack ID that can be used to message the channel directly
     """
-    if channel_type == 'slack_id':
+    if channel_type == "slack_id":
         channel_id = channel_name
-    elif channel_type == 'user':
+    elif channel_type == "user":
         user = find_user(channel_name)
         channel_id = user["user"]["id"] if user["found"] else False
         if not channel_id:
@@ -72,7 +90,7 @@ def paginated_api_call(api_method, response_objects_name, **kwargs):
         response_objects = r.get(response_objects_name)
         if response_objects is not None:
             for channel in r[response_objects_name]:
-                channel_name = channel.get('name')
+                channel_name = channel.get("name")
                 ret.append(channel_name)
         metadata = r.get("response_metadata")
         if metadata is not None:
