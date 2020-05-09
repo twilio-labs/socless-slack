@@ -1,11 +1,24 @@
-from socless import socless_bootstrap, socless_dispatch_outbound_message, init_human_interaction
+from socless import (
+    socless_bootstrap,
+    socless_dispatch_outbound_message,
+    init_human_interaction,
+)
 from socless.utils import gen_id
 import requests
 import os
 
 SLACK_BOT_TOKEN = os.environ["SOCLESS_BOT_TOKEN"]
 
-def handle_state(context, trigger_id, title, elements, receiver='', submit_label='Submit',state='n/a'):
+
+def handle_state(
+    context,
+    trigger_id,
+    title,
+    elements,
+    receiver="",
+    submit_label="Submit",
+    state="n/a",
+):
     """Send a dialog into Slack
 
     Args:
@@ -23,44 +36,47 @@ def handle_state(context, trigger_id, title, elements, receiver='', submit_label
         - A user can respond to a dialog by either submitting it or cancelling it. The response payload contains a key named `type` that can be either `dialog_submission` or `dialog_cancellation`. In your playboks,
           be sure to check what type of response a user provided before acting on it.
     """
-    USE_NEW_INTERACTION = 'task_token' in context
+    USE_NEW_INTERACTION = "task_token" in context
 
     message_id = gen_id()
 
     dialog = {
-        'title': title,
-        'elements': elements,
-        'submit_label': submit_label,
-        'notify_on_cancel': True,
-        'callback_id': message_id,
-        'state': state
+        "title": title,
+        "elements": elements,
+        "submit_label": submit_label,
+        "notify_on_cancel": True,
+        "callback_id": message_id,
+        "state": state,
     }
 
-    payload = {
-        'trigger_id': trigger_id,
-        'dialog': dialog
-    }
+    payload = {"trigger_id": trigger_id, "dialog": dialog}
 
     url = "https://slack.com/api/dialog.open"
-    headers = {'content-type': 'application/json', 'Authorization': "Bearer {}".format(SLACK_BOT_TOKEN)}
+    headers = {
+        "content-type": "application/json",
+        "Authorization": "Bearer {}".format(SLACK_BOT_TOKEN),
+    }
     if USE_NEW_INTERACTION:
-        init_human_interaction(context,payload, message_id)
+        init_human_interaction(context, payload, message_id)
 
     resp = requests.post(url, json=payload, headers=headers)
     json_resp = resp.json()
 
     if not json_resp["ok"]:
-        raise Exception(json_resp['error'])
+        print(json_resp.get("response_metadata"))
+        raise Exception(json_resp["error"])
 
     if not USE_NEW_INTERACTION:
-        investigation_id = context['artifacts']['event']['investigation_id']
-        execution_id = context.get('execution_id')
-        socless_dispatch_outbound_message(receiver,message_id,investigation_id,execution_id,payload)
-    return {'response': json_resp, "message_id": message_id}
+        investigation_id = context["artifacts"]["event"]["investigation_id"]
+        execution_id = context.get("execution_id")
+        socless_dispatch_outbound_message(
+            receiver, message_id, investigation_id, execution_id, payload
+        )
+    return {"response": json_resp, "message_id": message_id}
 
 
-def lambda_handler(event,context):
+def lambda_handler(event, context):
     # warm start
-    if event.get('_keepwarm') is True:
+    if event.get("_keepwarm") is True:
         return {}
-    return socless_bootstrap(event,context,handle_state,include_event=True)
+    return socless_bootstrap(event, context, handle_state, include_event=True)
