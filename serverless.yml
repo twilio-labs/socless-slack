@@ -28,7 +28,6 @@ provider:
     restApiId: ${{cf:${{self:custom.socless}}.APIGatewayID}}
     restApiRootResourceId: ${{cf:${{self:custom.socless}}.APIGatewayRootResourceId}}
 
-
 plugins:
   - serverless-package-python-functions
 
@@ -48,7 +47,6 @@ custom:
     dev: false
     prod: true
     sandbox: false
-
 
 functions:
   SlackEndpoint:
@@ -72,7 +70,7 @@ functions:
           description: Triggers SlackEndpoint every 5 minutes to keep it warm
           rate: cron(0/5 * * * ? *)
           enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: {"_keepwarm": true}
+          input: { "_keepwarm": true }
 
   FindUser:
     handler: lambda_function.lambda_handler
@@ -81,7 +79,6 @@ functions:
     package:
       include:
         - functions/find_user
-
 
   PromptForConfirmation:
     handler: lambda_function.lambda_handler
@@ -92,7 +89,6 @@ functions:
     package:
       include:
         - functions/prompt_for_confirmation
-
 
   PromptForResponse:
     handler: lambda_function.lambda_handler
@@ -128,7 +124,24 @@ functions:
           description: Triggers SendDialog every 5 minutes to keep it warm
           rate: cron(0/5 * * * ? *)
           enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: {"_keepwarm": true}
+          input: { "_keepwarm": true }
+
+  SendModal:
+    handler: lambda_function.lambda_handler
+    name: _socless_slack_send_modal
+    description: Send a modal into Slack
+    environment:
+      SAVE_MESSAGE_RESPONSE_MACHINE: ${{cf:${{self:custom.socless}}.SaveMessageResponseTaskToken}}
+    package:
+      include:
+        - functions/send_modal
+    events:
+      - schedule:
+          name: SendModalWarmStart_SOC
+          description: Triggers SendModal every 5 minutes to keep it warm
+          rate: cron(0/5 * * * ? *)
+          enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
+          input: { "_keepwarm": true }
 
   CreateChannel:
     handler: lambda_function.lambda_handler
@@ -197,6 +210,11 @@ resources:
       Value:
         Fn::Sub: ${SendDialogLambdaFunction.Arn}
 
+    SendModal:
+      Description: ARN of Socless Slack integration for ingesting Socless integration commands from Slack
+      Value:
+        Fn::Sub: ${SendModalLambdaFunction.Arn}
+
     CreateChannel:
       Description: ARN of Socless Slack integration to create a channel
       Value:
@@ -205,12 +223,12 @@ resources:
     CheckIfUserInChannel:
       Description: ARN of Socless Slack integration to check if user is in a channel
       Value:
-          Fn::Sub: ${CheckIfUserInChannelLambdaFunction.Arn}
+        Fn::Sub: ${CheckIfUserInChannelLambdaFunction.Arn}
 
     SetChannelTopic:
       Description: ARN of Socless Slack integration to set topic for a channel
       Value:
-          Fn::Sub: ${SetChannelTopicLambdaFunction.Arn}
+        Fn::Sub: ${SetChannelTopicLambdaFunction.Arn}
 
     InviteToChannel:
       Description: ARN of Socless Slack integration to invite a member to channel
@@ -221,4 +239,3 @@ resources:
       Description: ARN of Socless Slack integration to list all channels
       Value:
         Fn::Sub: ${ListChannelsLambdaFunction.Arn}
-
