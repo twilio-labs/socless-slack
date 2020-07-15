@@ -17,7 +17,7 @@
   "author": "Ubani Balogun",
   "license": "ISC",
   "dependencies": {
-    "serverless": "^1.70.0",
+    "serverless": "^1.73.1",
     "serverless-package-python-functions": "^0.6.1"
   }
 }
