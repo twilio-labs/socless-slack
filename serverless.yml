@@ -28,27 +28,21 @@ provider:
     restApiId: ${{cf:${{self:custom.socless}}.APIGatewayID}}
     restApiRootResourceId: ${{cf:${{self:custom.socless}}.APIGatewayRootResourceId}}
 
-
 plugins:
-  - serverless-package-python-functions
+  - socless_integration_packager
 
 package:
   individually: true
 
 custom:
   socless: socless-${{self:provider.stage}}
-  pkgPyFuncs:
+  soclessPackager:
     buildDir: build
-    globalRequirements:
-      - functions/requirements.txt
-    globalIncludes:
-      - ./common_files
   slash_command: ${{ssm:/socless/slack/slash_command}}
   scheduleEnabled:
     dev: false
     prod: true
     sandbox: false
-
 
 functions:
   SlackEndpoint:
@@ -72,7 +66,7 @@ functions:
           description: Triggers SlackEndpoint every 5 minutes to keep it warm
           rate: cron(0/5 * * * ? *)
           enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: {"_keepwarm": true}
+          input: { "_keepwarm": true }
 
   FindUser:
     handler: lambda_function.lambda_handler
@@ -81,7 +75,6 @@ functions:
     package:
       include:
         - functions/find_user
-
 
   PromptForConfirmation:
     handler: lambda_function.lambda_handler
@@ -92,7 +85,6 @@ functions:
     package:
       include:
         - functions/prompt_for_confirmation
-
 
   PromptForResponse:
     handler: lambda_function.lambda_handler
@@ -128,7 +120,7 @@ functions:
           description: Triggers SendDialog every 5 minutes to keep it warm
           rate: cron(0/5 * * * ? *)
           enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: {"_keepwarm": true}
+          input: { "_keepwarm": true }
 
   CreateChannel:
     handler: lambda_function.lambda_handler
@@ -205,12 +197,12 @@ resources:
     CheckIfUserInChannel:
       Description: ARN of Socless Slack integration to check if user is in a channel
       Value:
-          Fn::Sub: ${CheckIfUserInChannelLambdaFunction.Arn}
+        Fn::Sub: ${CheckIfUserInChannelLambdaFunction.Arn}
 
     SetChannelTopic:
       Description: ARN of Socless Slack integration to set topic for a channel
       Value:
-          Fn::Sub: ${SetChannelTopicLambdaFunction.Arn}
+        Fn::Sub: ${SetChannelTopicLambdaFunction.Arn}
 
     InviteToChannel:
       Description: ARN of Socless Slack integration to invite a member to channel
@@ -221,4 +213,3 @@ resources:
       Description: ARN of Socless Slack integration to list all channels
       Value:
         Fn::Sub: ${ListChannelsLambdaFunction.Arn}
-

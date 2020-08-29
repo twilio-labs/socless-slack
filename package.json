@@ -18,6 +18,6 @@
   "license": "ISC",
   "dependencies": {
     "serverless": "^1.70.0",
-    "serverless-package-python-functions": "^0.6.1"
+    "socless_integration_packager": "git+https://github.com/twilio-labs/socless_integration_packager.git#1.0.0"
   }
 }
