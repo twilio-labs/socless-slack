@@ -41,6 +41,7 @@ custom:
   slash_command: ${{ssm:/socless/slack/slash_command}}
   scheduleEnabled:
     dev: false
+    stage: true
     prod: true
     sandbox: false
 
