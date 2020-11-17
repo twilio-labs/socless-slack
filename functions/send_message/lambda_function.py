@@ -3,7 +3,7 @@ from slack_helpers import slack_client, find_user, get_channel_id
 import slack
 
 
-def handle_state(context, message_template, target, target_type):
+def handle_state(context, message_template, target, target_type, as_user=True):
     """
     Send a Slack message without expecting a response
     """
@@ -12,7 +12,7 @@ def handle_state(context, message_template, target, target_type):
 
     target_id = get_channel_id(target, target_type)
     message = socless_template_string(message_template, context)
-    resp = slack_client.chat_postMessage(channel=target_id, text=message, as_user=True)
+    resp = slack_client.chat_postMessage(channel=target_id, text=message, as_user=as_user)
     return {"response": resp.data, "slack_id": target_id}
 
 
