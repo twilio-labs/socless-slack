@@ -1,4 +1,5 @@
 service: socless-slack
+unresolvedVariablesNotificationMode: error
 
 provider:
   name: aws
@@ -8,7 +9,7 @@ provider:
   region: ${{opt:region}}
   versionFunctions: false
   memorySize: 128
-  timeout: 30
+  timeout: 120
   role: ${{cf:${{self:custom.socless}}.LambdaExecutionRoleArn}}
   environment:
     SOCLESS_VAULT: ${{cf:${{self:custom.socless}}.SoclessVault}}
@@ -17,7 +18,8 @@ provider:
     SOCLESS_MESSAGE_RESPONSE_TABLE: ${{cf:${{self:custom.socless}}.MessageResponsesTable}}
     MESSAGE_RESPONSES_TABLE: ${{cf:${{self:custom.socless}}.MessageResponsesTable}}
     SOCLESS_BOT_TOKEN: ${{ssm:/socless/slack/bot_token~true}}
-    SOCLESS_USER_TOKEN: ${{ssm:/socless/slack/bot_token_user~true}}
+    CACHE_USERS_TABLE:
+      Ref: SlackUsernamesTable
 
   vpc:
     securityGroupIds:
@@ -29,18 +31,26 @@ provider:
     restApiRootResourceId: ${{cf:${{self:custom.socless}}.APIGatewayRootResourceId}}
 
 plugins:
+  - sls-apb
   - socless_integration_packager
 
 package:
   individually: true
 
 custom:
-  socless: socless-${{self:provider.stage}}
   soclessPackager:
     buildDir: build
+
+  socless: socless-${{self:provider.stage}}
+  core:
+    SetInvestigationStatus: ${{cf:socless-${{self:provider.stage}}.SetInvestigationStatus}}
+    MergeParallelOutput: ${{cf:socless-${{self:provider.stage}}.MergeParallelOutput}}
+  playbooks:
+    - socless_slack_integration_test
+
   slash_command: ${{ssm:/socless/slack/slash_command}}
   scheduleEnabled:
-    dev: false
+    dev: true
     stage: true
     prod: true
     sandbox: false
@@ -50,6 +60,8 @@ functions:
     handler: lambda_function.lambda_handler
     name: _socless_slack_endpoint
     description: Receives messages from Slack
+    memorySize: 128
+    timeout: 30
     environment:
       AWAIT_MESSAGE_RESPONSE_ARN: ${{cf:${{self:custom.socless}}.AwaitMessageResponseActivity}}
       SLACK_SIGNING_SECRET: ${{ssm:/socless/slack/signing_secret~true}}
@@ -67,7 +79,7 @@ functions:
           description: Triggers SlackEndpoint every 5 minutes to keep it warm
           rate: cron(0/5 * * * ? *)
           enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: { "_keepwarm": true }
+          input: {"_keepwarm": true}
 
   FindUser:
     handler: lambda_function.lambda_handler
@@ -121,7 +133,7 @@ functions:
           description: Triggers SendDialog every 5 minutes to keep it warm
           rate: cron(0/5 * * * ? *)
           enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: { "_keepwarm": true }
+          input: {"_keepwarm": true}
 
   CreateChannel:
     handler: lambda_function.lambda_handler
@@ -163,54 +175,87 @@ functions:
       include:
         - functions/list_channels
 
+  UpdateCachedUsers:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_update_cached_users
+    description: Socless Slack integration that populates the dynamodb cache
+    memorySize: 192
+    timeout: 500
+    package:
+      include:
+        - functions/update_cached_users
+
 resources:
-  Outputs:
-    FindUser:
-      Description: ARN of Socless Slack integration to find a Slack User based on their username
-      Value:
-        Fn::Sub: ${FindUserLambdaFunction.Arn}
+  - ${{file(resources/dynamodb.yml)}} # Cache usernames dynamodb table
+  - Resources:
+      SoclessSlackIntegrationTestcase:
+        Type: "AWS::SSM::Parameter"
+        Properties:
+          Description:
+            Fn::Sub: "Input for ${{self:service}}'s integration test playbook"
+          Name: /socless/slack/integration_test_input
+          Type: String
+          Value: ${{file(playbooks/socless_slack_integration_test/test_case_json.txt)}}
 
-    PromptForConfirmation:
-      Description: ARN of Socless Slack integration to prompt a user for a Yes/No confirmation
-      Value:
-        Fn::Sub: ${PromptForConfirmationLambdaFunction.Arn}
+  - Outputs:
+      FindUser:
+        Description: ARN of Socless Slack integration to find a Slack User based on
+          their username
+        Value:
+          Fn::Sub: ${FindUserLambdaFunction.Arn}
 
-    PromptForResponse:
-      Description: ARN of Socless Slack integration to prompt a user for a text-based response
-      Value:
-        Fn::Sub: ${PromptForResponseLambdaFunction.Arn}
+      PromptForConfirmation:
+        Description: ARN of Socless Slack integration to prompt a user for a Yes/No
+          confirmation
+        Value:
+          Fn::Sub: ${PromptForConfirmationLambdaFunction.Arn}
 
-    SendMessage:
-      Description: ARN of Socless Slack integration to send messages without expecting responses
-      Value:
-        Fn::Sub: ${SendMessageLambdaFunction.Arn}
+      PromptForResponse:
+        Description: ARN of Socless Slack integration to prompt a user for a text-based
+          response
+        Value:
+          Fn::Sub: ${PromptForResponseLambdaFunction.Arn}
 
-    SendDialog:
-      Description: ARN of Socless Slack integration for ingesting Socless integration commands from Slack
-      Value:
-        Fn::Sub: ${SendDialogLambdaFunction.Arn}
+      SendMessage:
+        Description: ARN of Socless Slack integration to send messages without expecting
+          responses
+        Value:
+          Fn::Sub: ${SendMessageLambdaFunction.Arn}
 
-    CreateChannel:
-      Description: ARN of Socless Slack integration to create a channel
-      Value:
-        Fn::Sub: ${CreateChannelLambdaFunction.Arn}
+      SendDialog:
+        Description: ARN of Socless Slack integration for ingesting Socless integration
+          commands from Slack
+        Value:
+          Fn::Sub: ${SendDialogLambdaFunction.Arn}
 
-    CheckIfUserInChannel:
-      Description: ARN of Socless Slack integration to check if user is in a channel
-      Value:
-        Fn::Sub: ${CheckIfUserInChannelLambdaFunction.Arn}
+      CreateChannel:
+        Description: ARN of Socless Slack integration to create a channel
+        Value:
+          Fn::Sub: ${CreateChannelLambdaFunction.Arn}
 
-    SetChannelTopic:
-      Description: ARN of Socless Slack integration to set topic for a channel
-      Value:
-        Fn::Sub: ${SetChannelTopicLambdaFunction.Arn}
+      CheckIfUserInChannel:
+        Description: ARN of Socless Slack integration to check if user is in a channel
+        Value:
+          Fn::Sub: ${CheckIfUserInChannelLambdaFunction.Arn}
 
-    InviteToChannel:
-      Description: ARN of Socless Slack integration to invite a member to channel
-      Value:
-        Fn::Sub: ${InviteToChannelLambdaFunction.Arn}
+      SetChannelTopic:
+        Description: ARN of Socless Slack integration to set topic for a channel
+        Value:
+          Fn::Sub: ${SetChannelTopicLambdaFunction.Arn}
 
-    ListChannels:
-      Description: ARN of Socless Slack integration to list all channels
-      Value:
-        Fn::Sub: ${ListChannelsLambdaFunction.Arn}
+      InviteToChannel:
+        Description: ARN of Socless Slack integration to invite a member to channel
+        Value:
+          Fn::Sub: ${InviteToChannelLambdaFunction.Arn}
+
+      ListChannels:
+        Description: ARN of Socless Slack integration to list all channels
+        Value:
+          Fn::Sub: ${ListChannelsLambdaFunction.Arn}
+
+      UpdateCachedUsers:
+        Description: ARN of Socless Slack integration that populates the dynamodb
+          cache
+        Value:
+          Fn::Sub: ${UpdateCachedUsersLambdaFunction.Arn}
+

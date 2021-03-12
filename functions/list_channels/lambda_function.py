@@ -1,22 +1,21 @@
-from socless import *
-from slack_helpers import slack_client, find_user, get_channel_id, paginated_api_call
+from socless import socless_bootstrap
+from slack_helpers import slack_client, paginated_api_call
 
 
 def handle_state():
+    """Returns a list of all available channels in the workspace.
+    Returns:
+        channels: (list) list of all channels
+    Note: https://api.slack.com/methods/conversations.list
     """
-           Compiles list of all available channels
-           :return: list of channels
-           Note: https://api.slack.com/methods/conversations.list
-           """
 
-    ret = paginated_api_call(slack_client.conversations_list,
-                             "channels",
-                             exclude_archived=0,
-                             types="public_channel, private_channel"
-                             )
-    return {
-        "channels": ret
-    }
+    response = paginated_api_call(
+        api_method=slack_client.conversations_list,
+        response_objects_name="channels",
+        exclude_archived=0,
+        types="public_channel, private_channel",
+    )
+    return {"channels": response}
 
 
 def lambda_handler(event, context):

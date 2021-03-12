@@ -1,0 +1,24 @@
+# Dynamodb Tables
+Resources:
+  # Slack Usernames to slack_ids table
+  SlackUsernamesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: socless_slack_usernames
+      AttributeDefinitions:
+        - AttributeName: username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: username
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 10
+        WriteCapacityUnits: 10
+
+# Resource outputs
+Outputs:
+  # Slack Usernames Table name
+  SlackUsernamesTable:
+    Description: "SOCless Slack usernames to slack_ids table"
+    Value:
+      Ref: SlackUsernamesTable

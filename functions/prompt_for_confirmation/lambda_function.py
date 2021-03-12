@@ -1,31 +1,50 @@
-from socless import socless_template_string, socless_dispatch_outbound_message, socless_bootstrap, init_human_interaction
+from socless import (
+    socless_template_string,
+    socless_dispatch_outbound_message,
+    socless_bootstrap,
+    init_human_interaction,
+)
 from socless.utils import gen_id
-from slack_helpers import find_user, get_channel_id, slack_client
+from slack_helpers import resolve_slack_target, slack_client, slack_post_msg_wrapper
 
 
-def handle_state(context, target_type, target, text, receiver='', prompt_text='', yes_text='Yes', no_text='No'):
+def handle_state(
+    context,
+    target_type,
+    target,
+    text,
+    receiver="",
+    prompt_text="",
+    yes_text="Yes",
+    no_text="No",
+    as_user=True,
+):
+    """Send a Slack Message and store the message id for the message.
+    Args:
+
+    Returns:
+
     """
-    Send a Slack Message and store the message id for the message
-    """
-    USE_NEW_INTERACTION = 'task_token' in context
+    USE_NEW_INTERACTION = "task_token" in context
 
     if not all([target_type, target, text]):
-        raise Exception("Incomplete inputs: target, target_type and text must be supplied")
-    target_id = get_channel_id(target, target_type)
+        raise Exception(
+            "Incomplete inputs: target, target_type and text must be supplied"
+        )
 
     ATTACHMENT_YES_ACTION = {
         "name": "yes_text",
         "style": "default",
         "text": "",
         "type": "button",
-        "value": "true"
+        "value": "true",
     }
     ATTACHMENT_NO_ACTION = {
         "name": "no_text",
         "style": "danger",
         "text": "",
         "type": "button",
-        "value": "false"
+        "value": "false",
     }
 
     ATTACHMENT_TEMPLATE = {
@@ -35,39 +54,45 @@ def handle_state(context, target_type, target, text, receiver='', prompt_text=''
         "callback_id": "",
         "color": "#3AA3E3",
         "attachment_type": "default",
-        "actions": []
+        "actions": [],
     }
 
     message_id = gen_id(6)
-    context['_message_id'] = message_id
+    context["_message_id"] = message_id
     text = socless_template_string(text, context)
     prompt_text = socless_template_string(prompt_text, context)
 
-    ATTACHMENT_TEMPLATE['text'] = "*{}*".format(prompt_text)
-    ATTACHMENT_TEMPLATE['callback_id'] = message_id
-    ATTACHMENT_YES_ACTION['text'] = yes_text
-    ATTACHMENT_NO_ACTION['text'] = no_text
-    ATTACHMENT_TEMPLATE['actions'] = [ATTACHMENT_YES_ACTION, ATTACHMENT_NO_ACTION]
+    ATTACHMENT_TEMPLATE["text"] = "*{}*".format(prompt_text)
+    ATTACHMENT_TEMPLATE["callback_id"] = message_id
+    ATTACHMENT_YES_ACTION["text"] = yes_text
+    ATTACHMENT_NO_ACTION["text"] = no_text
+    ATTACHMENT_TEMPLATE["actions"] = [ATTACHMENT_YES_ACTION, ATTACHMENT_NO_ACTION]
 
-    payload = {
-        "text": text,
-        "ATTACHMENT_TEMPLATE" : ATTACHMENT_TEMPLATE
-    }
+    payload = {"text": text, "ATTACHMENT_TEMPLATE": ATTACHMENT_TEMPLATE}
 
     if USE_NEW_INTERACTION:
-        init_human_interaction(context,payload, message_id)
+        init_human_interaction(context, payload, message_id)
 
-    resp = slack_client.chat_postMessage(channel=target_id, text=text, attachments=[ATTACHMENT_TEMPLATE], as_user=True)
-
-    if not resp.data['ok']:
-        raise Exception(resp.data['error'])
+    resp = slack_post_msg_wrapper(
+        target,
+        target_type,
+        text=text,
+        attachments=[ATTACHMENT_TEMPLATE],
+        as_user=as_user,
+    )
 
     if not USE_NEW_INTERACTION:
-        investigation_id = context['artifacts']['event']['investigation_id']
-        execution_id = context.get('execution_id')
-        socless_dispatch_outbound_message(receiver,message_id,investigation_id,execution_id,payload)
-    
-    return {'response': resp.data, "message_id": message_id, "slack_id" : target_id}
+        investigation_id = context["artifacts"]["event"]["investigation_id"]
+        execution_id = context.get("execution_id")
+        socless_dispatch_outbound_message(
+            receiver, message_id, investigation_id, execution_id, payload
+        )
+
+    return {
+        "response": resp.data,
+        "message_id": message_id,
+        "slack_id": resp["channel"],
+    }
 
 
 def lambda_handler(event, context):
