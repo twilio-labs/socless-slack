@@ -106,3 +106,85 @@ If your Socless deployment is successful, you will see a URL that ends in `/slac
 
 
 Your Slack Bot is now completely configured for use within Socless
+
+## Slack App Permission Scopes
+
+### Bot Token Scopes
+Scopes that govern what your app can access.
+
+- app_mentions:read
+- calls:read
+- calls:write
+- channels:history
+- channels:join
+- channels:manage
+- channels:read
+- chat:write
+- chat:write.customize
+- chat:write.public
+- commands
+- dnd:read
+- emoji:read
+- files:read
+- files:write
+- groups:history
+- groups:read
+- groups:write
+- im:history
+- im:read
+- im:write
+- incoming-webhook
+- links:read
+- links:write
+- mpim:history
+- mpim:read
+- mpim:write
+- pins:read
+- pins:write
+- reactions:read
+- reactions:write
+- reminders:read
+- reminders:write
+- remote_files:read
+- remote_files:share
+- remote_files:write
+- team:read
+- usergroups:read
+- usergroups:write
+- users.profile:read
+- users:read
+- users:read.email
+- users:write
+- workflow.steps:execute
+ 
+### User Token Scopes
+Scopes that access user data and act on behalf of users that authorize them.
+ 
+- channels:history
+- channels:read
+- channels:write
+- chat:write
+- emoji:read
+- files:read
+- groups:history
+- groups:read
+- groups:write
+- identify
+- im:history
+- im:read
+- im:write
+- links:read
+- links:write
+- mpim:history
+- mpim:read
+- mpim:write
+- pins:read
+- pins:write
+- reactions:read
+- reactions:write
+- search:read
+- usergroups:read
+- users.profile:read
+- users:read
+- users:read.email
+- users:write

@@ -1,0 +1,14 @@
+{
+  "name": "Testing_socless_slack_integration",
+  "playbook": "SoclessSlackIntegrationTest",
+  "dedup_keys": [],
+  "data_types": {},
+  "event_meta": {},
+  "details": [
+    {
+      "username_target": "<a_username>",
+      "existing_channel_name": "sec-eng-dev-null",
+      "existing_channel_id" : "C012345678"
+    }
+  ]
+}
