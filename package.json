@@ -18,7 +18,7 @@
     "author": "Ubani Balogun",
     "license": "ISC",
     "dependencies": {
-        "serverless": "2.29.0",
+        "serverless": "2.28.6",
         "sls-apb": "git+https://github.com/twilio-labs/sls-apb.git#1.2.0",
         "socless_integration_packager": "git+https://github.com/twilio-labs/socless_integration_packager.git#1.0.0"
     }
