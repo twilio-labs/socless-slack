@@ -1,8 +1,8 @@
 from socless import socless_bootstrap
-from slack_helpers import slack_client, resolve_slack_target, paginated_api_call
+from slack_helpers import paginated_api_call, SlackHelper
 
 
-def handle_state(user_id: str, target_channel_id: str):
+def handle_state(user_id: str, target_channel_id: str, token=""):
     """Check if user is in a particular slack channel.
     Args:
         user_id: user id of the user invoking the slash command
@@ -11,8 +11,10 @@ def handle_state(user_id: str, target_channel_id: str):
         ok: (bool) True if user is found in the channel
     """
 
+    helper = SlackHelper(token)
+
     response = paginated_api_call(
-        api_method=slack_client.conversations_members,
+        api_method=helper.client.conversations_members,
         response_objects_name="members",
         channel=target_channel_id,
     )

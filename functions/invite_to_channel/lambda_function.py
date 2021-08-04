@@ -1,9 +1,8 @@
 from socless import socless_bootstrap
-from slack_helpers import slack_client
-import os
+from slack_helpers import SlackHelper
 
 
-def handle_state(channel_id, user_id="", user_ids=[]):
+def handle_state(channel_id, user_id="", user_ids=[], token=""):
     """Add users to a channel. Requires a Slack User Token (Token_Type: xoxp)
     Args:
         channel_id (str): Id of channel to invite.
@@ -17,13 +16,15 @@ def handle_state(channel_id, user_id="", user_ids=[]):
         Token_Type: xoxp
         - See https://api.slack.com/methods/conversations.invite
     """
+    helper = SlackHelper(token)
+
     if isinstance(user_ids, str):
         user_ids = [user_ids]
 
     if user_id:
         user_ids.append(user_id)
 
-    res = slack_client.conversations_invite(channel=channel_id, users=user_ids)
+    _ = helper.client.conversations_invite(channel=channel_id, users=user_ids)
 
     return {"ok": True, "user_ids": user_ids}
 

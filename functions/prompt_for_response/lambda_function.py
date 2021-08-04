@@ -1,5 +1,5 @@
-import uuid, os
-from slack_helpers import slack_client, resolve_slack_target, slack_post_msg_wrapper
+import os
+from slack_helpers import SlackHelper
 from socless import (
     socless_bootstrap,
     socless_dispatch_outbound_message,
@@ -21,6 +21,7 @@ def handle_state(
     receiver="",
     response_desc="[response]",
     as_user=True,
+    token="",
 ):
     """Send a Slack Message and store the message id for the message.
     Args:
@@ -28,6 +29,7 @@ def handle_state(
     Returns:
 
     """
+    helper = SlackHelper(token)
 
     if not message_template:
         raise Exception("No text was supplied to Slack message")
@@ -44,12 +46,13 @@ def handle_state(
         response_desc=response_desc,
     )
     message = socless_template_string(extended_template, context)
-    target_id = resolve_slack_target(target, target_type)
 
     if USE_NEW_INTERACTION:
         init_human_interaction(context, message, message_id)
 
-    resp = slack_post_msg_wrapper(target, target_type, text=message, as_user=as_user)
+    resp = helper.slack_post_msg_wrapper(
+        target, target_type, text=message, as_user=as_user
+    )
 
     if not USE_NEW_INTERACTION:
         investigation_id = context["artifacts"]["event"]["investigation_id"]
@@ -59,10 +62,9 @@ def handle_state(
         )
 
     return {
-        "response": resp.data,
-        # "response": r.data,
+        "response": resp.data,  # type: ignore
         "message_id": message_id,
-        "slack_id": resp["channel"],
+        "slack_id": resp["channel"],  # type: ignore
     }
 
 

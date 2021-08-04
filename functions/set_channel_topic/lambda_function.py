@@ -1,9 +1,8 @@
 from socless import socless_bootstrap
-from slack_helpers import slack_client
-import os
+from slack_helpers import SlackHelper
 
 
-def handle_state(channel_id, topic: str):
+def handle_state(channel_id, topic: str, token=""):
     """Set topic for a channel.
     Args:
         channel_id(str): channel_id for the targeted channel
@@ -12,7 +11,9 @@ def handle_state(channel_id, topic: str):
     Returns:
         ok : (bool) True if topic was changed
     """
-    response = slack_client.conversations_setTopic(channel=channel_id, topic=topic)
+    helper = SlackHelper(token)
+
+    _ = helper.client.conversations_setTopic(channel=channel_id, topic=topic)
 
     return {"ok": True, "topic": topic}
 

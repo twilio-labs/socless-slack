@@ -1,0 +1,126 @@
+{
+    "Playbook": "SoclessSlackE2EInteractionTest",
+    "Comment": "Test all socless-slack lambda functions",
+    "StartAt": "Find_User_via_Username",
+    "States": {
+        "Find_User_via_Username": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.FindUser.name}}",
+            "Parameters": {
+                "username": "$.artifacts.event.details.username"
+            },
+            "Next": "Prompt_For_Confirmation"
+        },
+        "Prompt_For_Confirmation": {
+            "Type": "Interaction",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.PromptForConfirmation.name}}",
+            "Parameters": {
+                "prompt_text": "Tesing PromptForConfirmation",
+                "text": "This will timeout in 30 seconds and advance to next step in test",
+                "target": "$.results.Find_User_via_Username.id",
+                "target_type": "slack_id"
+            },
+            "TimeoutSeconds": 100,
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.Timeout"
+                    ],
+                    "ResultPath": "$.errors.Prompt_For_Confirmation",
+                    "Next": "Wait_D"
+                }
+            ],
+            "Next": "Wait_D"
+        },
+        "Wait_D": {
+            "Type": "Wait",
+            "Seconds": 2,
+            "Next": "Prompt_For_Response"
+        },
+        "Prompt_For_Response": {
+            "Type": "Interaction",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.PromptForResponse.name}}",
+            "Parameters": {
+                "message_template": "Testing PromptForConfirmation \n This will timeout in 30 seconds and advance to next step in test",
+                "target": "$.results.Find_User_via_Username.id",
+                "target_type": "slack_id",
+                "response_desc": "anything"
+            },
+            "TimeoutSeconds": 100,
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.Timeout"
+                    ],
+                    "ResultPath": "$.errors.Slack_User_For_Return_Date",
+                    "Next": "Send_Slack_Dialog"
+                }
+            ],
+            "Next": "Send_Slack_Dialog"
+        },
+        "Send_Slack_Dialog": {
+            "Type": "Interaction",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.SendDialog.name}}",
+            "TimeoutSeconds": 100,
+            "Parameters": {
+                "trigger_id": "$.results.Prompt_For_Response.trigger_id",
+                "title": "Ask for ticket ID",
+                "elements": [
+                    {
+                    "label": "Ask for ticket ID",
+                    "name": "reverify_ticket_id",
+                    "optional": false,
+                    "placeholder": "Please provide the ticket ID",
+                    "type": "text"
+                    }
+                ]
+            },
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                    "States.Timeout"
+                    ],
+                    "ResultPath": "$.errors.Send_Slack_Dialog",
+                    "Next": "FAILED_TEST"
+                }
+            ],
+            "Next": "Check_Dialog_Submission_Status"
+        },
+        "Check_Dialog_Submission_Status": {
+        "Type": "Choice",
+        "Choices": [
+            {
+            "Variable": "$.results.type",
+            "StringEquals": "dialog_submission",
+            "Next": "Dialog_Submitted"
+            },
+            {
+            "Variable": "$.results.type",
+            "StringEquals": "dialog_cancellation",
+            "Next": "Dialog_Cancelled"
+            }
+        ],
+        "Default": "Dialog_Cancelled"
+        },
+        "Dialog_Cancelled": {
+        "Type": "Pass",
+        "Next": "FAILED_TEST"
+        },
+        "Dialog_Submitted": {
+        "Type": "Pass",
+        "Next": "Close_Investigation"
+        },
+        "FAILED_TEST": {
+            "Type": "Fail"
+        },
+        "Close_Investigation": {
+            "Type": "Task",
+            "Resource": "${{self:custom.core.SetInvestigationStatus}}",
+            "Parameters": {
+                "investigation_id": "$.artifacts.event.investigation_id",
+                "status": "closed"
+            },
+            "End": true
+        }
+    }
+}

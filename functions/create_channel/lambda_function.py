@@ -1,9 +1,8 @@
 from socless import socless_bootstrap
-import os
-from slack_helpers import slack_client
+from slack_helpers import SlackHelper
 
 
-def handle_state(channel_name, user_ids=[], is_private=False):
+def handle_state(channel_name, user_ids=[], is_private=False, token=""):
     """Create slack channel and invite any provided slack_ids.
     Args:
         channel_name (str): The name of channel to be created.
@@ -13,21 +12,22 @@ def handle_state(channel_name, user_ids=[], is_private=False):
     Note:
         - See https://api.slack.com/methods/conversations.create for more details on how to create private channel
     """
+    helper = SlackHelper(token)
 
     if isinstance(user_ids, str):
         user_ids = user_ids.split(",")
 
-    create_response = slack_client.conversations_create(
+    create_response = helper.client.conversations_create(
         name=channel_name, is_private=is_private, user_ids=user_ids
     )
 
-    created_channel_id = create_response["channel"]["id"]
-    bot_user_id = create_response["channel"]["creator"]
+    created_channel_id = create_response["channel"]["id"]  # type: ignore
+    bot_user_id = create_response["channel"]["creator"]  # type: ignore
 
     if user_ids:
         user_ids = [x.strip() for x in user_ids if x != bot_user_id]
 
-        invite_response = slack_client.conversations_invite(
+        _ = helper.client.conversations_invite(
             channel=created_channel_id, users=user_ids
         )
 

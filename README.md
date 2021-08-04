@@ -37,8 +37,9 @@ To setup a Slack bot:
 Configure the below parameters in [AWS Systems Manager (SSM) Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) in the region(s) you plan to deploy your Socless Slack integrations
 
 | Key                               | Value description                                                                                                                                                         | Parameter Type |
-|-----------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------|
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- |
 | /socless/slack/bot_token          | Bot User OAuth Access Token from your installed bot                                                                                                                       | SecureString   |
+| /socless/slack/bot_token_user     | A regular User OAuth Access Token for a Slack service user so that SOCless can run advanced tasks such as creating private channels                                       | SecureString   |
 | /socless/slack/slash_command      | The name you'll give the slash command for your bot e.g /socless-bot                                                                                                      | String         |
 | /socless/slack/signing_secret     | The signing secret for your bot found on the "App Credentials" section of the "Basic Information" page for your app                                                       | SecureString   |
 | /socless/slack_endpoint/help_text | Help text that your Socless Slack endpoints will respond with in case of failure e.g. "socless-bot experienced an error. Please contact the security team for assistance" | SecureString   |
