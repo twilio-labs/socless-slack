@@ -16,14 +16,15 @@
         "Wait_A": {
             "Type": "Wait",
             "Seconds": 5,
-            "Next": "Set_Channel_Topic"
+            "Next": "Set_Channel_Topic_using_Runtime_Secrets"
         },
-        "Set_Channel_Topic": {
+        "Set_Channel_Topic_using_Runtime_Secrets": {
             "Type": "Task",
             "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.SetChannelTopic.name}}",
             "Parameters": {
                 "channel_id": "$.results.Send_Message_To_Channel.slack_id",
-                "topic": "set the channel topic: Our dev/null channel, you should probably mute this. Good for writing automated tests that post to Slack"
+                "topic": "set the channel topic: Our dev/null channel, you should probably mute this. Good for writing automated tests that post to Slack",
+                "token" : "{{env('TSIRT_TOKEN')}}"
             },
             "Next": "Wait_B"
         },

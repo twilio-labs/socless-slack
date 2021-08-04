@@ -17,9 +17,14 @@ provider:
     SOCLESS_RESULTS_TABLE: ${{cf:${{self:custom.socless}}.ExecutionResultsTable}}
     SOCLESS_MESSAGE_RESPONSE_TABLE: ${{cf:${{self:custom.socless}}.MessageResponsesTable}}
     MESSAGE_RESPONSES_TABLE: ${{cf:${{self:custom.socless}}.MessageResponsesTable}}
-    SOCLESS_BOT_TOKEN: ${{ssm:/socless/slack/bot_token~true}}
+    SOCLESS_BOT_TOKEN: ${{ssm:/socless/slack/bot_token~true}} # default token if none specified via lambda args at runtime
     CACHE_USERS_TABLE:
       Ref: SlackUsernamesTable
+    # Add Bot Tokens to the environment vars for multi-bot support. 
+    # <BOT_NAME>_TOKEN can be used in playbooks at runtime as "token" : "{{env('TSIRT_TOKEN')}}"
+    # To enable interactivity, you will also need to add the bot signing secret under the 
+    # `SlackEndpoint` lambda function below
+    TSIRT_TOKEN: ${{ssm:/socless/slack/bot_token~true}}
 
   vpc:
     securityGroupIds:
@@ -42,18 +47,20 @@ custom:
     buildDir: build
 
   socless: socless-${{self:provider.stage}}
+  statesRole: ${{cf:socless-${{self:provider.stage}}.StatesExecutionRoleArn}}
   core:
     SetInvestigationStatus: ${{cf:socless-${{self:provider.stage}}.SetInvestigationStatus}}
     MergeParallelOutput: ${{cf:socless-${{self:provider.stage}}.MergeParallelOutput}}
   playbooks:
     - socless_slack_integration_test
+    - socless_slack_e2e_interaction_test
 
   slash_command: ${{ssm:/socless/slack/slash_command}}
   scheduleEnabled:
-    dev: true
+    dev: false
     stage: true
     prod: true
-    sandbox: false
+    sandbox: true
 
 functions:
   SlackEndpoint:
@@ -64,8 +71,11 @@ functions:
     timeout: 30
     environment:
       AWAIT_MESSAGE_RESPONSE_ARN: ${{cf:${{self:custom.socless}}.AwaitMessageResponseActivity}}
-      SLACK_SIGNING_SECRET: ${{ssm:/socless/slack/signing_secret~true}}
       HELP_TEXT: ${{ssm:/socless/slack_endpoint/help_text~true}}
+      # Add bot Signing Secret for multi-bot support.
+      # <BOT_NAME>_SECRET, where <BOT_NAME> is the same name passed via query params
+      # to the slack endpoint: <endpoint>/<stage/slack?bot=<BOT_NAME>
+      TSIRT_SECRET: ${{ssm:/socless/slack/signing_secret~true}}
     package:
       include:
         - functions/slack_endpoint
@@ -187,15 +197,16 @@ functions:
 
 resources:
   - ${{file(resources/dynamodb.yml)}} # Cache usernames dynamodb table
-  - Resources:
-      SoclessSlackIntegrationTestcase:
-        Type: "AWS::SSM::Parameter"
-        Properties:
-          Description:
-            Fn::Sub: "Input for ${{self:service}}'s integration test playbook"
-          Name: /socless/slack/integration_test_input
-          Type: String
-          Value: ${{file(playbooks/socless_slack_integration_test/test_case_json.txt)}}
+  # Uncomment this to deploy the slack test case with your code
+  # - Resources:
+  #     SoclessSlackIntegrationTestcase:
+  #       Type: "AWS::SSM::Parameter"
+  #       Properties:
+  #         Description:
+  #           Fn::Sub: "Input for ${{self:service}}'s integration test playbook"
+  #         Name: /socless/slack/integration_test_input
+  #         Type: String
+  #         Value: ${{file(playbooks/socless_slack_integration_test/test_case_json.txt)}}
 
   - Outputs:
       FindUser:

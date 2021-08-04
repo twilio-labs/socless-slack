@@ -5,7 +5,7 @@ from socless import (
     init_human_interaction,
 )
 from socless.utils import gen_id
-from slack_helpers import resolve_slack_target, slack_client, slack_post_msg_wrapper
+from slack_helpers import SlackHelper
 
 
 def handle_state(
@@ -18,6 +18,7 @@ def handle_state(
     yes_text="Yes",
     no_text="No",
     as_user=True,
+    token="",
 ):
     """Send a Slack Message and store the message id for the message.
     Args:
@@ -25,6 +26,7 @@ def handle_state(
     Returns:
 
     """
+    helper = SlackHelper(token)
     USE_NEW_INTERACTION = "task_token" in context
 
     if not all([target_type, target, text]):
@@ -73,7 +75,7 @@ def handle_state(
     if USE_NEW_INTERACTION:
         init_human_interaction(context, payload, message_id)
 
-    resp = slack_post_msg_wrapper(
+    resp = helper.slack_post_msg_wrapper(
         target,
         target_type,
         text=text,
@@ -89,9 +91,9 @@ def handle_state(
         )
 
     return {
-        "response": resp.data,
+        "response": resp.data,  # type: ignore
         "message_id": message_id,
-        "slack_id": resp["channel"],
+        "slack_id": resp["channel"],  # type: ignore
     }
 
 

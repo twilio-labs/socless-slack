@@ -12,8 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 from socless import socless_bootstrap
-from slack_helpers import slack_client, CACHE_USERS_TABLE
-import os
+from slack_helpers import SlackHelper, CACHE_USERS_TABLE
 import boto3
 
 if not CACHE_USERS_TABLE:
@@ -25,8 +24,8 @@ dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(CACHE_USERS_TABLE)
 
 
-def handle_state(slack_profile_key="display_name"):
-    """Update the dynamoDB table with slack users' usernames and slack_ids
+def handle_state(slack_profile_key="display_name", token=""):
+    """Update the dynamoDB table with slack user's usernames and slack_ids
     Args:
         slack_profile_key: name in user profile to use for cache mapping
         exclude_bots: exclude bots from search results
@@ -42,16 +41,17 @@ def handle_state(slack_profile_key="display_name"):
             }
         }
     """
+    helper = SlackHelper(token)
 
     paginate = True
     next_cursor = ""
     formatted_users = []
     while paginate:
-        resp = slack_client.users_list(
+        resp = helper.client.users_list(
             cursor=next_cursor, limit=1000, include_locale="false"
         )
-        data = resp.data
-        next_cursor = resp.data["response_metadata"].get("next_cursor", "")
+        data = resp.data  # type: ignore
+        next_cursor = resp.data["response_metadata"].get("next_cursor", "")  # type: ignore
         if not next_cursor:
             paginate = False
         formatted_users = formatted_users + [

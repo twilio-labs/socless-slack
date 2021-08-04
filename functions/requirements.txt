@@ -1,2 +1,2 @@
-git+https://github.com/twilio-labs/socless_python.git@1.3.0#egg=socless
-slackclient
+git+https://github.com/twilio-labs/socless_python.git@1.5.0#egg=socless
+slack_sdk

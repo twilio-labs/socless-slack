@@ -1,8 +1,11 @@
-import boto3
-from botocore.exceptions import ClientError
-import simplejson as json, urllib.request, urllib.parse, urllib.error, time, os, hmac, hashlib, copy
-from socless import end_human_interaction, socless_log
+import simplejson as json, urllib.request, urllib.parse, urllib.error, os, copy
 from urllib.parse import parse_qsl
+from socless import end_human_interaction, socless_log
+from slack_helpers import (
+    SlackError,
+    get_bot_friendly_name_from_endpoint_query_params,
+    is_event_from_slack,
+)
 
 
 NO_MESSAGE_ID = "no_message_id"
@@ -14,8 +17,7 @@ NO_RESPONSE = "no_user_response"
 
 
 class BaseResponseHandler(object):
-    """Parent class for all Slack Response Handlers
-    """
+    """Parent class for all Slack Response Handlers"""
 
     def __init__(self, payload):
         """
@@ -27,18 +29,15 @@ class BaseResponseHandler(object):
         self.payload = copy.deepcopy(payload)
 
     def make_apig_response(self, resp_template="", fields={}):
-        """Create the necessary response for API Gateway
-        """
+        """Create the necessary response for API Gateway"""
         raise NotImplementedError("make_apig_response")
 
     def parse_human_response(self):
-        """Parse the human response from the payload
-        """
+        """Parse the human response from the payload"""
         raise NotImplementedError("parse_human_response")
 
     def execute(self):
-        """Execute the handler to address the message
-        """
+        """Execute the handler to address the message"""
         ERROR_TEMPLATES = {
             "message_id_query_failed": {"source": "server"},
             "message_id_not_found": {
@@ -99,16 +98,16 @@ class SlashCommandHandler(BaseResponseHandler):
         to the relevant playbook
         ```
             {
-            	"user_id": "U********",
-            	"response_url": "https://hooks.slack.com/commands/T******/3*******/G************",
-            	"text": "07-11-2018",
-            	"trigger_id": "3*******.2******.4*********************v*********",
-            	"channel_id": "D********",
-            	"team_id": "T********",
-            	"command": "/slash-command",
-            	"team_domain": "s******",
-            	"user_name": "u*******",
-            	"channel_name": "directmessage"
+                "user_id": "U********",
+                "response_url": "https://hooks.slack.com/commands/T******/3*******/G************",
+                "text": "07-11-2018",
+                "trigger_id": "3*******.2******.4*********************v*********",
+                "channel_id": "D********",
+                "team_id": "T********",
+                "command": "/slash-command",
+                "team_domain": "s******",
+                "user_name": "u*******",
+                "channel_name": "directmessage"
             }
         ```
 
@@ -128,8 +127,7 @@ class SlashCommandHandler(BaseResponseHandler):
         self.human_response["text"] = user_resp
 
     def make_apig_response(self, resp_template="One moment please", fields={}):
-        """
-        """
+        """"""
         return {
             "statusCode": 200,
             "body": json.dumps(
@@ -218,8 +216,7 @@ class InteractiveMessageHandler(BaseResponseHandler):
         self.human_response["actions"] = self.human_response["actions"][0]
 
     def make_apig_response(self, resp_template="You responded with *{}*", fields={}):
-        """
-        """
+        """"""
         original_text = self.payload["original_message"]["text"]
         original_attachment = copy.deepcopy(
             self.payload["original_message"]["attachments"][0]
@@ -308,8 +305,7 @@ class DialogSubmissionHandler(BaseResponseHandler):
         self.human_response = self.payload
 
     def make_apig_response(self, resp_template="", fields={}):
-        """
-        """
+        """"""
         # TODO: Determine how to handle rudimentary validation of returned values
         return {"statusCode": 200}
 
@@ -326,31 +322,17 @@ def lambda_handler(event, context):
     if event.get("_keepwarm") is True:
         return {"statusCode": 200}
 
-    # Validate that the message came from Slack
-    slack_signing_secret = bytes(os.environ["SLACK_SIGNING_SECRET"], "utf8")
-    timestamp = event["headers"]["X-Slack-Request-Timestamp"]
-    if abs(time.time() - float(timestamp)) > 60 * 5:
-        return {
-            "statusCode": 200,
-            "body": "invalid_auth_timestamp. {}".format(
-                os.environ.get("HELP_TEXT", "")
-            ),
-        }
+    bot_name = get_bot_friendly_name_from_endpoint_query_params(event)
+    signing_secret_env_key = f"{bot_name}_SECRET".upper()
 
-    sig_basestring = bytes("v0:{}:{}".format(timestamp, event["body"]), "utf8")
-    my_signature = bytes(
-        "v0="
-        + hmac.new(slack_signing_secret, sig_basestring, hashlib.sha256).hexdigest(),
-        "utf8",
-    )
-    slack_signature = event["headers"]["X-Slack-Signature"].encode()
-    if not hmac.compare_digest(my_signature, slack_signature):
-        return {
-            "statusCode": 200,
-            "body": "invalid_auth_signature. {}".format(
-                os.environ.get("HELP_TEXT", "")
-            ),
-        }
+    try:
+        signing_secret = os.environ[signing_secret_env_key]
+    except KeyError as e:
+        raise SlackError(f"No signing secret found for {signing_secret_env_key}. {e}")
+
+    # Validate that the message came from Slack
+    if not is_event_from_slack(event, signing_secret):
+        return {"statusCode": 200, "body": "Invalid Auth"}
 
     # Since signature is valid, process the response
     form_encoded_payload = event.get("body")

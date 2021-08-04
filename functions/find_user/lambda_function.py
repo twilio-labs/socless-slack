@@ -12,11 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 from socless import socless_bootstrap
-from slack_helpers import find_user, get_user_info_via_id, get_slack_id_from_username
-import os
+from slack_helpers import (
+    SlackHelper,
+)
 
 
-def handle_state(username="", slack_id="", exclude_bots=False):
+def handle_state(username="", slack_id="", exclude_bots=False, token=""):
     """Get a slack user's profile from their username or slack_id.
     Args:
         username: User's Slack name ex. ubalogun
@@ -34,6 +35,8 @@ def handle_state(username="", slack_id="", exclude_bots=False):
             }
         }
     """
+    helper = SlackHelper(token)
+
     if exclude_bots and isinstance(exclude_bots, str):
         lowered = exclude_bots.lower()
         if lowered not in ["true", "false"]:
@@ -43,9 +46,9 @@ def handle_state(username="", slack_id="", exclude_bots=False):
         exclude_bots = True if lowered == "true" else False
 
     if username and not slack_id:
-        slack_id = get_slack_id_from_username(username)
+        slack_id = helper.get_slack_id_from_username(username)
 
-    user = get_user_info_via_id(slack_id)
+    user = helper.get_user_info_via_id(slack_id)
     profile = user.get("profile", {})
 
     if exclude_bots and user["is_bot"]:

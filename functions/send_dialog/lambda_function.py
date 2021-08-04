@@ -6,7 +6,6 @@ from socless import (
 from socless.utils import gen_id
 from slack_helpers import SOCLESS_BOT_TOKEN
 import requests
-import os
 
 
 def handle_state(
@@ -17,6 +16,7 @@ def handle_state(
     receiver="",
     submit_label="Submit",
     state="n/a",
+    token="",
 ):
     """Send a dialog into Slack
 
@@ -35,6 +35,9 @@ def handle_state(
         - A user can respond to a dialog by either submitting it or cancelling it. The response payload contains a key named `type` that can be either `dialog_submission` or `dialog_cancellation`. In your playboks,
             be sure to check what type of response a user provided before acting on it.
     """
+    if not token:
+        token = SOCLESS_BOT_TOKEN
+
     USE_NEW_INTERACTION = "task_token" in context
 
     message_id = gen_id()
@@ -53,7 +56,7 @@ def handle_state(
     url = "https://slack.com/api/dialog.open"
     headers = {
         "content-type": "application/json",
-        "Authorization": "Bearer {}".format(SOCLESS_BOT_TOKEN),
+        "Authorization": "Bearer {}".format(token),
     }
     if USE_NEW_INTERACTION:
         init_human_interaction(context, payload, message_id)
