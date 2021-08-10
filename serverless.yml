@@ -78,7 +78,7 @@ functions:
       TSIRT_SECRET: ${{ssm:/socless/slack/signing_secret~true}}
     package:
       include:
-        - functions/slack_endpoint
+        - functions/_slack_endpoint
     events:
       - http:
           path: /slack
@@ -193,7 +193,7 @@ functions:
     timeout: 500
     package:
       include:
-        - functions/update_cached_users
+        - functions/_update_cached_users
 
 resources:
   - ${{file(resources/dynamodb.yml)}} # Cache usernames dynamodb table

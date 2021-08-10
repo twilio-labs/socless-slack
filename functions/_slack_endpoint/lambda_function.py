@@ -127,7 +127,7 @@ class SlashCommandHandler(BaseResponseHandler):
         self.human_response["text"] = user_resp
 
     def make_apig_response(self, resp_template="One moment please", fields={}):
-        """"""
+        """ """
         return {
             "statusCode": 200,
             "body": json.dumps(
@@ -216,7 +216,7 @@ class InteractiveMessageHandler(BaseResponseHandler):
         self.human_response["actions"] = self.human_response["actions"][0]
 
     def make_apig_response(self, resp_template="You responded with *{}*", fields={}):
-        """"""
+        """ """
         original_text = self.payload["original_message"]["text"]
         original_attachment = copy.deepcopy(
             self.payload["original_message"]["attachments"][0]
@@ -305,7 +305,7 @@ class DialogSubmissionHandler(BaseResponseHandler):
         self.human_response = self.payload
 
     def make_apig_response(self, resp_template="", fields={}):
-        """"""
+        """ """
         # TODO: Determine how to handle rudimentary validation of returned values
         return {"statusCode": 200}
 
