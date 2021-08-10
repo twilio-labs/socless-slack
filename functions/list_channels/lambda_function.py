@@ -2,8 +2,10 @@ from socless import socless_bootstrap
 from slack_helpers import paginated_api_call, SlackHelper
 
 
-def handle_state(token=""):
+def handle_state(token: str = ""):
     """Returns a list of all available channels in the workspace.
+    Args:
+        token : you can pass an alternate token via Jinja template in playbook.json (ssm, environment, etc)
     Returns:
         channels: (list) list of all channels
     Note: https://api.slack.com/methods/conversations.list

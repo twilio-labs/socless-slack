@@ -10,19 +10,21 @@ from slack_helpers import SlackHelper
 
 def handle_state(
     context,
-    target_type,
-    target,
-    text,
-    receiver="",
-    prompt_text="",
-    yes_text="Yes",
-    no_text="No",
-    as_user=True,
-    token="",
+    target_type: str,
+    target: str,
+    text: str,
+    receiver: str = "",
+    prompt_text: str = "",
+    yes_text: str = "Yes",
+    no_text: str = "No",
+    as_user: bool = True,
+    token: str = "",
 ):
     """Send a Slack Message and store the message id for the message.
     Args:
-
+        target         : the username or slack id to send this message to
+        target_type    : "slack_id" | "user" | "channel"
+        token          : you can pass an alternate token via Jinja template in playbook.json (ssm, environment, etc)
     Returns:
 
     """

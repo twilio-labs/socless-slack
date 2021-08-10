@@ -24,6 +24,7 @@ dynamodb = boto3.resource("dynamodb")
 table = dynamodb.Table(CACHE_USERS_TABLE)
 
 
+# SOCLESS_INTERNAL
 def handle_state(slack_profile_key="display_name", token=""):
     """Update the dynamoDB table with slack user's usernames and slack_ids
     Args:

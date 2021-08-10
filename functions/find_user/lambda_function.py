@@ -17,12 +17,15 @@ from slack_helpers import (
 )
 
 
-def handle_state(username="", slack_id="", exclude_bots=False, token=""):
+def handle_state(
+    username: str = "", slack_id: str = "", exclude_bots: bool = False, token: str = ""
+):
     """Get a slack user's profile from their username or slack_id.
     Args:
-        username: User's Slack name ex. ubalogun
-        slack_id: user's Slack ID ex. W1234567
-        exclude_bots: exclude bots from search results
+        username     : User's Slack name ex. ubalogun
+        slack_id     : user's Slack ID ex. W1234567
+        exclude_bots : exclude bots from search results
+        token        : you can pass an alternate token via Jinja template in playbook.json (ssm, environment, etc)
     Returns:
         {
             "result" : (bool)

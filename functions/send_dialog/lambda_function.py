@@ -10,24 +10,24 @@ import requests
 
 def handle_state(
     context,
-    trigger_id,
-    title,
-    elements,
-    receiver="",
-    submit_label="Submit",
-    state="n/a",
-    token="",
+    trigger_id: str,
+    title: str,
+    elements: list,
+    receiver: str = "",
+    submit_label: str = "Submit",
+    state: str = "n/a",
+    token: str = "",
 ):
     """Send a dialog into Slack
 
     Args:
-        context (dict): The state context object. This is included automatically by Socless Core and SHOULD NOT be supplied by the user when creating a playbook
-        receiver (str): The name of the State in the playbook that will receive the dialog response
-        trigger_id (str): trigger_id required to open a Dialog
-        title (str): Dialog title
-        elements (list): Dialog elements
-        submit_label (str): Label for Dialog's submit button
-        state (str): this string simply echoes back what your app passed to dialog.open. Use it as a pointer that references sensitive data stored elsewhere.
+        receiver     : The name of the State in the playbook that will receive the dialog response
+        trigger_id   : trigger_id required to open a Dialog
+        title        : Dialog title
+        elements     : Dialog elements
+        submit_label : Label for Dialog's submit button
+        state        : this string simply echoes back what your app passed to dialog.open. Use it as a pointer that references sensitive data stored elsewhere.
+        token        : you can pass an alternate token via Jinja template in playbook.json (ssm, environment, etc)
 
     Note:
         - See https://api.slack.com/dialogs for more details on to create elements for a slack dialog

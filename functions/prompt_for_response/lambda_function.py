@@ -15,17 +15,19 @@ SLACK_SLASH_COMMAND = os.environ.get("SLACK_SLASH_COMMAND", "")
 
 def handle_state(
     context,
-    target,
-    target_type,
-    message_template,
-    receiver="",
-    response_desc="[response]",
-    as_user=True,
-    token="",
+    target: str,
+    target_type: str,
+    message_template: str,
+    receiver: str = "",
+    response_desc: str = "[response]",
+    as_user: bool = True,
+    token: str = "",
 ):
     """Send a Slack Message and store the message id for the message.
     Args:
-
+        target         : the username or slack id to send this message to
+        target_type    : "slack_id" | "user" | "channel"
+        token          : you can pass an alternate token via Jinja template in playbook.json (ssm, environment, etc)
     Returns:
 
     """

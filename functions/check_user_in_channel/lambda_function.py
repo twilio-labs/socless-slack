@@ -2,11 +2,12 @@ from socless import socless_bootstrap
 from slack_helpers import paginated_api_call, SlackHelper
 
 
-def handle_state(user_id: str, target_channel_id: str, token=""):
+def handle_state(user_id: str, target_channel_id: str, token: str = ""):
     """Check if user is in a particular slack channel.
     Args:
         user_id: user id of the user invoking the slash command
         target_channel_id: the channel id to be checked if user is in
+        token: you can pass an alternate token via Jinja template in playbook.json (ssm, environment, etc)
     Returns:
         ok: (bool) True if user is found in the channel
     """
