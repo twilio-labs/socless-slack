@@ -195,6 +195,14 @@ functions:
       include:
         - functions/_update_cached_users
 
+  UploadFile:
+    handler: lambda_function.lambda_handler
+    name: socless_slack_upload_file
+    description: Socless Slack integration to send messages without expecting responses
+    package:
+      include:
+        - functions/upload_file
+
 resources:
   - ${{file(resources/dynamodb.yml)}} # Cache usernames dynamodb table
   # Uncomment this to deploy the slack test case with your code
@@ -270,3 +278,8 @@ resources:
         Value:
           Fn::Sub: ${UpdateCachedUsersLambdaFunction.Arn}
 
+
+      UploadFile:
+        Description: ARN of Socless Slack integration to send a file
+        Value:
+          Fn::Sub: ${UploadFileLambdaFunction.Arn}
