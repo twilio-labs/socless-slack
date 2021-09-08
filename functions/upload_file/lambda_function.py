@@ -39,16 +39,23 @@ def handle_state(
     content = socless_template_string(content, context)
 
     slack_target = helper.resolve_slack_target(target, target_type)
-    channels = [slack_target]
 
-    file_upload_args = {}
-    for arg in [content, file, filename, title, initial_comment, channels]:
-        if arg:
-            file_upload_args[arg] = arg
+    # NOTE: this api supports multiple targets, with channel as a comma separated list
+    file_upload_args = {"channels": slack_target}
+
+    if content:
+        file_upload_args["content"] = content
+    if file:
+        file_upload_args["file"] = file
+    if filename:
+        file_upload_args["filename"] = filename
+    if initial_comment:
+        file_upload_args["initial_comment"] = initial_comment
+    if title:
+        file_upload_args["title"] = title
 
     file_upload_args = {**file_upload_args, **kwargs}
 
-    helper = SlackHelper()
     resp = helper.client.files_upload(**file_upload_args)
 
     if not resp.data["ok"]:

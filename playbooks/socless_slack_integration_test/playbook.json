@@ -24,7 +24,7 @@
             "Parameters": {
                 "channel_id": "$.results.Send_Message_To_Channel.slack_id",
                 "topic": "set the channel topic: Our dev/null channel, you should probably mute this. Good for writing automated tests that post to Slack",
-                "token" : "{{env('TSIRT_TOKEN')}}"
+                "token": "{{env('TSIRT_TOKEN')}}"
             },
             "Next": "Wait_B"
         },
@@ -116,6 +116,19 @@
         "Wait_C": {
             "Type": "Wait",
             "Seconds": 5,
+            "Next": "Upload_File"
+        },
+        "Upload_File": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.UploadFile.name}}",
+            "Parameters": {
+                "target": "$.artifacts.event.details.existing_channel_name",
+                "target_type": "channel",
+                "content": "Hello from SoclessSlackIntegrationTest in ${AWS::Region}",
+                "filename": "testfilename.txt",
+                "title": "testtitle",
+                "initial_comment": "testing file upload:"
+            },
             "Next": "Prompt_For_Confirmation"
         },
         "Prompt_For_Confirmation": {
