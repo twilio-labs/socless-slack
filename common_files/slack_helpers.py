@@ -117,9 +117,16 @@ class SlackHelper:
 
         return slack_id
 
-    def slack_post_msg_wrapper(self, target, target_type, **kwargs) -> SlackResponse:
+    def slack_post_msg_wrapper(
+        self, target, target_type, is_a_file, **kwargs
+    ) -> SlackResponse:
         target_id = self.resolve_slack_target(target, target_type)
-        resp = self.client.chat_postMessage(channel=target_id, **kwargs)
+
+        if is_a_file:
+            resp = self.client.files_upload(channel=target_id, **kwargs)
+
+        else:
+            resp = self.client.chat_postMessage(channel=target_id, **kwargs)
 
         if not resp.data["ok"]:
             raise SlackError(
