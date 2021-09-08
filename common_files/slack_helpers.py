@@ -89,9 +89,7 @@ class SlackHelper:
         return slack_id
 
     def get_user_info_via_id(self, slack_id):
-        """
-        API Docs https://api.slack.com/methods/users.info
-        """
+        """API Docs https://api.slack.com/methods/users.info"""
         resp = self.client.users_info(user=slack_id)
         return resp["user"]
 
@@ -117,16 +115,9 @@ class SlackHelper:
 
         return slack_id
 
-    def slack_post_msg_wrapper(
-        self, target, target_type, is_a_file, **kwargs
-    ) -> SlackResponse:
+    def slack_post_msg_wrapper(self, target, target_type, **kwargs) -> SlackResponse:
         target_id = self.resolve_slack_target(target, target_type)
-
-        if is_a_file:
-            resp = self.client.files_upload(channel=target_id, **kwargs)
-
-        else:
-            resp = self.client.chat_postMessage(channel=target_id, **kwargs)
+        resp = self.client.chat_postMessage(channel=target_id, **kwargs)
 
         if not resp.data["ok"]:
             raise SlackError(
