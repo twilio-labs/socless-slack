@@ -89,9 +89,7 @@ class SlackHelper:
         return slack_id
 
     def get_user_info_via_id(self, slack_id):
-        """
-        API Docs https://api.slack.com/methods/users.info
-        """
+        """API Docs https://api.slack.com/methods/users.info"""
         resp = self.client.users_info(user=slack_id)
         return resp["user"]
 

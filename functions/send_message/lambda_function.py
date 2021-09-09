@@ -25,7 +25,6 @@ def handle_state(
             "Incomplete parameters supplied. Please supply target, target_type and message_template"
         )
 
-    # target_id = resolve_slack_target(target, target_type)
     message = socless_template_string(message_template, context)
 
     resp = helper.slack_post_msg_wrapper(
