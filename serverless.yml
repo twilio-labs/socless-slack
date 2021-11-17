@@ -56,11 +56,16 @@ custom:
     - socless_slack_e2e_interaction_test
 
   slash_command: ${{ssm:/socless/slack/slash_command}}
-  scheduleEnabled:
-    dev: false
-    stage: true
-    prod: true
-    sandbox: true
+  # scheduleEnabled:
+  #   dev: false
+  #   stage: true
+  #   prod: true
+  #   sandbox: true
+  concurrencyAmount:
+    dev: 0
+    stage: 1
+    prod: 2
+    sandbox: 1
 
 functions:
   SlackEndpoint:
@@ -79,17 +84,18 @@ functions:
     package:
       include:
         - functions/_slack_endpoint
+    provisionedConcurrency: ${{self:custom.concurrencyAmount.${{self:provider.stage}}}}
     events:
       - http:
           path: /slack
           method: post
           cors: true
-      - schedule:
-          name: SlackEndpointWarmStart_SOC
-          description: Triggers SlackEndpoint every 5 minutes to keep it warm
-          rate: cron(0/5 * * * ? *)
-          enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: {"_keepwarm": true}
+      # - schedule:
+      #     name: SlackEndpointWarmStart_SOC
+      #     description: Triggers SlackEndpoint every 5 minutes to keep it warm
+      #     rate: cron(0/5 * * * ? *)
+      #     enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
+      #     input: {"_keepwarm": true}
 
   FindUser:
     handler: lambda_function.lambda_handler
@@ -137,13 +143,14 @@ functions:
     package:
       include:
         - functions/send_dialog
-    events:
-      - schedule:
-          name: SendDialogWarmStart_SOC
-          description: Triggers SendDialog every 5 minutes to keep it warm
-          rate: cron(0/5 * * * ? *)
-          enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
-          input: {"_keepwarm": true}
+    provisionedConcurrency: ${{self:custom.concurrencyAmount.${{self:provider.stage}}}}
+    # events:
+    #   - schedule:
+    #       name: SendDialogWarmStart_SOC
+    #       description: Triggers SendDialog every 5 minutes to keep it warm
+    #       rate: cron(0/5 * * * ? *)
+    #       enabled: ${{self:custom.scheduleEnabled.${{self:provider.stage}}}}
+    #       input: {"_keepwarm": true}
 
   CreateChannel:
     handler: lambda_function.lambda_handler
