@@ -20,9 +20,9 @@ provider:
     SOCLESS_BOT_TOKEN: ${{ssm:/socless/slack/bot_token~true}} # default token if none specified via lambda args at runtime
     CACHE_USERS_TABLE:
       Ref: SlackUsernamesTable
-    # Add Bot Tokens to the environment vars for multi-bot support. 
+    # Add Bot Tokens to the environment vars for multi-bot support.
     # <BOT_NAME>_TOKEN can be used in playbooks at runtime as "token" : "{{env('TSIRT_TOKEN')}}"
-    # To enable interactivity, you will also need to add the bot signing secret under the 
+    # To enable interactivity, you will also need to add the bot signing secret under the
     # `SlackEndpoint` lambda function below
     TSIRT_TOKEN: ${{ssm:/socless/slack/bot_token~true}}
 
@@ -132,6 +132,10 @@ functions:
     package:
       include:
         - functions/send_dialog
+    # Note: when removing this provisionedConcurrency config for this function,
+    # be sure to also remove the `:provisioned` prefix in Outputs.SendDialog
+    # and re-deploy all playbooks using the output to ensure the right version
+    # of the lambda function is referenced
     provisionedConcurrency: ${{self:custom.concurrencyAmount.${{self:provider.stage}}}}
 
   CreateChannel:
@@ -207,34 +211,42 @@ resources:
 
   - Outputs:
       FindUser:
-        Description: ARN of Socless Slack integration to find a Slack User based on
+        Description:
+          ARN of Socless Slack integration to find a Slack User based on
           their username
         Value:
           Fn::Sub: ${FindUserLambdaFunction.Arn}
 
       PromptForConfirmation:
-        Description: ARN of Socless Slack integration to prompt a user for a Yes/No
+        Description:
+          ARN of Socless Slack integration to prompt a user for a Yes/No
           confirmation
         Value:
           Fn::Sub: ${PromptForConfirmationLambdaFunction.Arn}
 
       PromptForResponse:
-        Description: ARN of Socless Slack integration to prompt a user for a text-based
+        Description:
+          ARN of Socless Slack integration to prompt a user for a text-based
           response
         Value:
           Fn::Sub: ${PromptForResponseLambdaFunction.Arn}
 
       SendMessage:
-        Description: ARN of Socless Slack integration to send messages without expecting
+        Description:
+          ARN of Socless Slack integration to send messages without expecting
           responses
         Value:
           Fn::Sub: ${SendMessageLambdaFunction.Arn}
 
       SendDialog:
-        Description: ARN of Socless Slack integration for ingesting Socless integration
+        Description:
+          ARN of Socless Slack integration for ingesting Socless integration
           commands from Slack
         Value:
-          Fn::Sub: ${SendDialogLambdaFunction.Arn}
+          # Output the Arn for the provisionedConcurrency version of the function,
+          # the `:provisioned` suffix is auto-created by the
+          # serverless framework and carries the actual provisioned concurrency
+          Fn::Sub: ${SendDialogLambdaFunction.Arn}:provisioned
 
       CreateChannel:
         Description: ARN of Socless Slack integration to create a channel
@@ -262,11 +274,11 @@ resources:
           Fn::Sub: ${ListChannelsLambdaFunction.Arn}
 
       UpdateCachedUsers:
-        Description: ARN of Socless Slack integration that populates the dynamodb
+        Description:
+          ARN of Socless Slack integration that populates the dynamodb
           cache
         Value:
           Fn::Sub: ${UpdateCachedUsersLambdaFunction.Arn}
-
 
       UploadFile:
         Description: ARN of Socless Slack integration to send a file
