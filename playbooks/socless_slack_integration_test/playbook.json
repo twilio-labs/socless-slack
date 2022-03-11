@@ -16,6 +16,18 @@
         "Wait_A": {
             "Type": "Wait",
             "Seconds": 5,
+            "Next": "Send_Message_To_Channel_Generic"
+        },
+        "Send_Message_To_Channel_Generic": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.WebApi.name}}",
+            "Parameters": {
+                "api_method": "chat.postMessage",
+                "json": {
+                    "channel": "$.artifacts.event.details.existing_channel_name",
+                    "text": "test from generic function"
+                }
+            },
             "Next": "Set_Channel_Topic_using_Runtime_Secrets"
         },
         "Set_Channel_Topic_using_Runtime_Secrets": {
