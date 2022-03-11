@@ -20,7 +20,7 @@
         },
         "Send_Message_To_Channel_Generic": {
             "Type": "Task",
-            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.Generic.name}}",
+            "Resource": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${{self:functions.WebApi.name}}",
             "Parameters": {
                 "api_method": "chat.postMessage",
                 "json": {
