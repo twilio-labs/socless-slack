@@ -218,11 +218,11 @@ resources:
   #         Value: ${{file(playbooks/socless_slack_integration_test/test_case_json.txt)}}
 
   - Outputs:
-      Generic:
+      WebApi:
         Description:
           ARN of Socless Slack generic 
         Value:
-          Fn::Sub: ${GenericLambdaFunction.Arn}
+          Fn::Sub: ${WebApiLambdaFunction.Arn}
 
       FindUser:
         Description:
