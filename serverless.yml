@@ -86,13 +86,13 @@ functions:
           method: post
           cors: true
 
-  Generic:
+  WebApi:
     handler: lambda_function.lambda_handler
-    name: socless_slack_generic
+    name: socless_slack_web_api_request
     description: Socless Slack integration for any API call
     package:
       include:
-        - functions/generic
+        - functions/web_api
 
   FindUser:
     handler: lambda_function.lambda_handler

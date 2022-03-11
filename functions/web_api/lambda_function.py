@@ -12,12 +12,21 @@ def handle_state(
     json: dict = None,  # type: ignore
     token: str = "",
 ):
-    """Create slack channel and invite any provided slack_ids.
+    """Make a Slack API call: https://api.slack.com/methods.
     Args:
         api_method : Slack method. Example: `chat.postEphemeral`
         http_verb  : defaults to POST
         params     : used for URL Encoded Params
-        json       : used for json encoded data
+        json       : used for JSON encoded data
+
+    Example usage:
+    {
+        "api_method": "chat.postMessage",
+        "json": {
+            "channel": "#my-channel",
+            "text": "test from generic function"
+        }
+    }
 
     Note:
         - See https://api.slack.com/methods
