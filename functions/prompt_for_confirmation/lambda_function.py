@@ -1,4 +1,5 @@
 from socless import (
+    socless_template_string,
     socless_dispatch_outbound_message,
     socless_bootstrap,
     init_human_interaction,
@@ -62,6 +63,8 @@ def handle_state(
 
     message_id = gen_id(6)
     context["_message_id"] = message_id
+    text = socless_template_string(text, context)
+    prompt_text = socless_template_string(prompt_text, context)
 
     ATTACHMENT_TEMPLATE["text"] = "*{}*".format(prompt_text)
     ATTACHMENT_TEMPLATE["callback_id"] = message_id

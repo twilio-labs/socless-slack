@@ -1,4 +1,4 @@
-from socless import socless_bootstrap
+from socless import socless_bootstrap, socless_template_string
 from slack_helpers import SlackHelper
 
 
@@ -25,7 +25,7 @@ def handle_state(
             "Incomplete parameters supplied. Please supply target, target_type and message_template"
         )
 
-    message = message_template
+    message = socless_template_string(message_template, context)
 
     resp = helper.slack_post_msg_wrapper(
         target, target_type, text=message, as_user=as_user
