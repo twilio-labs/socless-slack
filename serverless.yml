@@ -19,7 +19,7 @@ provider:
     MESSAGE_RESPONSES_TABLE: ${{cf:${{self:custom.socless}}.MessageResponsesTable}}
     SOCLESS_BOT_TOKEN: ${{ssm:/socless/slack/bot_token~true}} # default token if none specified via lambda args at runtime
     CACHE_USERS_TABLE:
-      Ref: SlackUsernamesTable
+      Ref: SlackUsersTable
     # Add Bot Tokens to the environment vars for multi-bot support.
     # <BOT_NAME>_TOKEN can be used in playbooks at runtime as "token" : "{{env('TSIRT_TOKEN')}}"
     # To enable interactivity, you will also need to add the bot signing secret under the
