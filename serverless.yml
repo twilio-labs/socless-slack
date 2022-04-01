@@ -86,14 +86,6 @@ functions:
           method: post
           cors: true
 
-  WebApi:
-    handler: lambda_function.lambda_handler
-    name: socless_slack_web_api_request
-    description: Socless Slack integration for any API call
-    package:
-      include:
-        - functions/web_api
-
   FindUser:
     handler: lambda_function.lambda_handler
     name: socless_slack_find_user
@@ -218,12 +210,6 @@ resources:
   #         Value: ${{file(playbooks/socless_slack_integration_test/test_case_json.txt)}}
 
   - Outputs:
-      WebApi:
-        Description:
-          ARN of Socless Slack generic 
-        Value:
-          Fn::Sub: ${WebApiLambdaFunction.Arn}
-
       FindUser:
         Description:
           ARN of Socless Slack integration to find a Slack User based on
