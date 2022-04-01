@@ -1,5 +1,5 @@
 from typing import Optional
-from socless import socless_bootstrap, socless_template_string
+from socless import socless_bootstrap
 from slack_helpers import SlackError, SlackHelper
 
 
@@ -35,8 +35,6 @@ def handle_state(
         raise SlackError(
             "Incomplete parameters supplied. Please `supply target`, `target_type`"
         )
-
-    content = socless_template_string(content, context)
 
     slack_target = helper.resolve_slack_target(target, target_type)
 
