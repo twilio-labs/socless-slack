@@ -14,17 +14,15 @@
 from socless import socless_bootstrap
 from slack_helpers import (
     SlackHelper,
-    SlackError
 )
 
 
 def handle_state(
-    username: str = "", email: str = "", slack_id: str = "", exclude_bots: bool = False, token: str = ""
+    username: str = "", slack_id: str = "", exclude_bots: bool = False, token: str = ""
 ):
-    """Get a slack user's profile from their username, email or slack_id.
+    """Get a slack user's profile from their username or slack_id.
     Args:
         username     : User's Slack name ex. ubalogun
-        email        : User's email ex. ubalogun@twilio.com
         slack_id     : user's Slack ID ex. W1234567
         exclude_bots : exclude bots from search results
         token        : you can pass an alternate token via Jinja template in playbook.json (ssm, environment, etc)
@@ -40,31 +38,18 @@ def handle_state(
             }
         }
     """
-    if not username and not email and not slack_id:
-        raise SlackError(
-            f"A username or email is required"
-        )
-
     helper = SlackHelper(token)
 
     if exclude_bots and isinstance(exclude_bots, str):
         lowered = exclude_bots.lower()
         if lowered not in ["true", "false"]:
-            raise SlackError(
+            raise Exception(
                 f"Invalid value passed for arg 'exclude_bots': {exclude_bots}. Arg must be type bool or string 'true|false' "
             )
         exclude_bots = True if lowered == "true" else False
 
-    if not slack_id:
-        if username:
-            try:
-                slack_id = helper.get_slack_id_from_username(username)
-            except Exception as e:
-                if not email:
-                    raise e
-                slack_id = helper.get_slack_id_from_email(email)
-        else:
-            slack_id = helper.get_slack_id_from_email(email)
+    if username and not slack_id:
+        slack_id = helper.get_slack_id_from_username(username)
 
     user = helper.get_user_info_via_id(slack_id)
     profile = user.get("profile", {})

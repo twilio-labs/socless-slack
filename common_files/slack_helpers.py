@@ -3,7 +3,6 @@ import boto3
 from slack_sdk import WebClient
 from slack_sdk.signature import SignatureVerifier
 from slack_sdk.web.slack_response import SlackResponse
-from boto3.dynamodb.conditions import Attr
 
 CACHE_USERS_TABLE = os.environ.get("CACHE_USERS_TABLE")
 SOCLESS_BOT_TOKEN = os.environ["SOCLESS_BOT_TOKEN"]
@@ -34,49 +33,37 @@ class SlackHelper:
             token = SOCLESS_BOT_TOKEN
         self.client = WebClient(token)
 
-    def find_user(self, name="", email="", page_limit=1000, include_locale="false"):
-        """Find a user's Slack profile based on their full or display name, or via email
+    def find_user(self, name: str, page_limit=1000, include_locale="false"):
+        """Find a user's Slack profile based on their full or display name.
         Args:
             name: A user's Full Name or Display Name
-            email: A user's email
         """
-        if not name and not email:
-            return {"found": False}         
         name_lower = name.lower()
         paginate = True
         next_cursor = ""
-        if email:
-            try:
-                resp = self.client.users_lookupByEmail(email = email.lower())
-                data = resp.data
-                if data["ok"]:
-                    return {"found": True, "user": data["user"]}
-            except Exception:
-                return {"found": False} 
-        if name: 
-                while paginate:
-                    resp = self.client.users_list(
-                        cursor=next_cursor, limit=page_limit, include_locale=include_locale
+        while paginate:
+            resp = self.client.users_list(
+                cursor=next_cursor, limit=page_limit, include_locale=include_locale
+            )
+            data = resp.data
+            next_cursor = resp.data["response_metadata"].get("next_cursor", "")
+            if not next_cursor:
+                paginate = False
+
+            for user in data["members"]:
+                user_names = list(
+                    map(
+                        str.lower,
+                        [
+                            user.get("name", ""),
+                            user.get("real_name", ""),
+                            user.get("profile", {}).get("real_name", ""),
+                        ],
                     )
-                    data = resp.data
-                    next_cursor = resp.data["response_metadata"].get("next_cursor", "")
-                    if not next_cursor:
-                        paginate = False
-                    for user in data["members"]:
-                        user_names = list(
-                            map(
-                                str.lower,
-                                [
-                                    user.get("name", ""),
-                                    user.get("real_name", ""),
-                                    user.get("profile", {}).get("real_name", ""),
-                                    user.get("profile", {}).get("display_name", "")
-                                ],
-                            )
-                        )
-                        if name_lower in user_names:
-                            return {"found": True, "user": user}
-        
+                )
+                if name_lower in user_names:
+                    return {"found": True, "user": user}
+
         return {"found": False}
 
     def get_slack_id_from_username(self, username: str):
@@ -88,41 +75,16 @@ class SlackHelper:
         Returns:
             slack_id
         """
-        slack_id = get_id_from_cache(username=username) if CACHE_USERS_TABLE else ""
+        slack_id = get_id_from_cache(username) if CACHE_USERS_TABLE else ""
 
         if not slack_id:
-            search = self.find_user(name=username)
+            search = self.find_user(username)
             if not search["found"]:
                 raise Exception(f"Unable to find user: {username}")
 
             slack_id = search["user"]["id"]
-            email = search["user"]["profile"]["email"]
             if CACHE_USERS_TABLE:
-                save_user_to_cache(username=username, email=email, slack_id=slack_id)
-
-        return slack_id
-
-    def get_slack_id_from_email(self, email: str):
-        """Fetch user's slack_id from their email.
-        Checks against the dynamoDB cache (if enabled), or paginates through slack API users.lookupByEmail
-            looking for the supplied email. If cache enabled, saves the found slack_id
-        Args:
-            email : (string) slack user's email
-        Returns:
-            slack_id
-        """
-        slack_id = get_id_from_cache(email=email) if CACHE_USERS_TABLE else ""
-
-        if not slack_id:
-            search = self.find_user(email=email)
-            if not search["found"]:
-                raise Exception(f"Unable to find user using email: {email}")
-
-            slack_id = search["user"]["id"]
-            #starting 2017(https://api.slack.com/changelog/2017-09-the-one-about-usernames), use display_name to map to slack Id)
-            username = search["user"]["profile"]["display_name"]
-            if CACHE_USERS_TABLE:
-                save_user_to_cache(username=username, email=email, slack_id=slack_id)
+                save_user_to_cache(username=username, slack_id=slack_id)
 
         return slack_id
 
@@ -144,13 +106,11 @@ class SlackHelper:
             slack_id = target_name
         elif target_type == "user":
             slack_id = self.get_slack_id_from_username(target_name)
-        elif target_type == "email":
-            slack_id = self.get_slack_id_from_email(target_name)            
         elif target_type == "channel":
             slack_id = target_name if target_name.startswith("#") else f"#{target_name}"
         else:
             raise Exception(
-                f"target_type is not 'channel|user|email|slack_id'. failed target_type: {target_type} for target: {target_name}"
+                f"target_type is not 'channel|user|slack_id'. failed target_type: {target_type} for target: {target_name}"
             )
 
         return slack_id
@@ -167,35 +127,29 @@ class SlackHelper:
         return resp
 
 
-def get_id_from_cache(username="", email="") -> str:
-    """Check if username or email exists in cache, return their slack_id.
+def get_id_from_cache(username: str) -> str:
+    """Check if username exists in cache, return their slack_id.
     Args:
         username: slack username
-        email: slack user's email
     Returns:
         slack_id
     """
-    if not username and not email: 
-        return False
     dynamodb = boto3.resource("dynamodb")
     if not CACHE_USERS_TABLE:
         raise Exception(
             "env var CACHE_USERS_TABLE is not set, please check socless-slack serverless.yml"
         )
     table_resource = dynamodb.Table(CACHE_USERS_TABLE)
-    if username:
-        key_obj = {"username": username}
-        response = table_resource.get_item(TableName=CACHE_USERS_TABLE, Key=key_obj)
-    else:
-        response = table_resource.scan(TableName=CACHE_USERS_TABLE, IndexName="email",  FilterExpression = Attr('email').eq(email))
+    key_obj = {"username": username}
+    response = table_resource.get_item(TableName=CACHE_USERS_TABLE, Key=key_obj)
 
     return response["Item"]["slack_id"] if "Item" in response else False
 
-def save_user_to_cache(username: str, email: str, slack_id: str):
+
+def save_user_to_cache(username: str, slack_id: str):
     """Save a username -> slack_id mapping to the cache table
     Args:
         username: slack username
-        email: slack user's email
         slack_id: user's slack id
     """
     dynamodb = boto3.resource("dynamodb")
@@ -204,9 +158,10 @@ def save_user_to_cache(username: str, email: str, slack_id: str):
             "env var CACHE_USERS_TABLE is not set, please check socless-slack serverless.yml"
         )
     table_resource = dynamodb.Table(CACHE_USERS_TABLE)
-    new_item = {"username": username, "email": email, "slack_id": slack_id}
+    new_item = {"username": username, "slack_id": slack_id}
     response = table_resource.put_item(TableName=CACHE_USERS_TABLE, Item=new_item)
     print(response)
+
 
 def paginated_api_call(api_method, response_objects_name, **kwargs):
     """Calls api method and cycles through all pages to get all objects.

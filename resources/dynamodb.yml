@@ -1,14 +1,12 @@
 # Dynamodb Tables
 Resources:
-  # Slack User info to slack_ids table
-  SlackUsersTable:
+  # Slack Usernames to slack_ids table
+  SlackUsernamesTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: socless_slack_users
+      TableName: socless_slack_usernames
       AttributeDefinitions:
         - AttributeName: username
-          AttributeType: S
-        - AttributeName: email
           AttributeType: S
       KeySchema:
         - AttributeName: username
@@ -16,23 +14,11 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 10
         WriteCapacityUnits: 10
-      GlobalSecondaryIndexes:
-        - IndexName: email
-          KeySchema:
-            - AttributeName: email
-              KeyType: HASH
-          Projection:
-            NonKeyAttributes:
-              - slack_id
-            ProjectionType: INCLUDE
-          ProvisionedThroughput:
-            ReadCapacityUnits: 10
-            WriteCapacityUnits: 10
 
 # Resource outputs
 Outputs:
   # Slack Usernames Table name
-  SlackUsersTable:
-    Description: "SOCless Slack userinfo to slack_ids table"
+  SlackUsernamesTable:
+    Description: "SOCless Slack usernames to slack_ids table"
     Value:
-      Ref: SlackUsersTable
+      Ref: SlackUsernamesTable
