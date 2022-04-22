@@ -36,3 +36,5 @@ venv
 # Python binaries
 .pyc
 __pycache__
+
+.archives

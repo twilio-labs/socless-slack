@@ -37,15 +37,11 @@ provider:
 
 plugins:
   - sls-apb
-  - socless_integration_packager
 
 package:
   individually: true
 
 custom:
-  soclessPackager:
-    buildDir: build
-
   socless: socless-${{self:provider.stage}}
   statesRole: ${{cf:socless-${{self:provider.stage}}.StatesExecutionRoleArn}}
   core:
@@ -77,8 +73,7 @@ functions:
       # to the slack endpoint: <endpoint>/<stage/slack?bot=<BOT_NAME>
       TSIRT_SECRET: ${{ssm:/socless/slack/signing_secret~true}}
     package:
-      include:
-        - functions/_slack_endpoint
+      artifact: .archives/functions/_slack_endpoint.zip
     provisionedConcurrency: ${{self:custom.concurrencyAmount.${{self:provider.stage}}}}
     events:
       - http:
@@ -91,16 +86,14 @@ functions:
     name: socless_slack_web_api_request
     description: Socless Slack integration for any API call
     package:
-      include:
-        - functions/web_api
+      artifact: .archives/functions/web_api.zip
 
   FindUser:
     handler: lambda_function.lambda_handler
     name: socless_slack_find_user
     description: Socless Slack integration find a user's profile in Slack
     package:
-      include:
-        - functions/find_user
+      artifact: .archives/functions/find_user.zip
 
   PromptForConfirmation:
     handler: lambda_function.lambda_handler
@@ -109,8 +102,7 @@ functions:
     environment:
       SAVE_MESSAGE_RESPONSE_MACHINE: ${{cf:${{self:custom.socless}}.SaveMessageResponseTaskToken}}
     package:
-      include:
-        - functions/prompt_for_confirmation
+      artifact: .archives/functions/prompt_for_confirmation.zip
 
   PromptForResponse:
     handler: lambda_function.lambda_handler
@@ -120,16 +112,14 @@ functions:
       SAVE_MESSAGE_RESPONSE_MACHINE: ${{cf:${{self:custom.socless}}.SaveMessageResponseTaskToken}}
       SLACK_SLASH_COMMAND: ${{self:custom.slash_command}}
     package:
-      include:
-        - functions/prompt_for_response
+      artifact: .archives/functions/prompt_for_response.zip
 
   SendMessage:
     handler: lambda_function.lambda_handler
     name: socless_slack_send_message
     description: Socless Slack integration to send messages without expecting responses
     package:
-      include:
-        - functions/send_message
+      artifact: .archives/functions/send_message.zip
 
   SendDialog:
     handler: lambda_function.lambda_handler
@@ -138,8 +128,7 @@ functions:
     environment:
       SAVE_MESSAGE_RESPONSE_MACHINE: ${{cf:${{self:custom.socless}}.SaveMessageResponseTaskToken}}
     package:
-      include:
-        - functions/send_dialog
+      artifact: .archives/functions/send_dialog.zip
     # Note: when removing this provisionedConcurrency config for this function,
     # be sure to also remove the `:provisioned` prefix in Outputs.SendDialog
     # and re-deploy all playbooks using the output to ensure the right version
@@ -151,40 +140,35 @@ functions:
     name: socless_slack_create_channel
     description: Create a slack channel
     package:
-      include:
-        - functions/create_channel
+      artifact: .archives/functions/create_channel.zip
 
   CheckIfUserInChannel:
     handler: lambda_function.lambda_handler
     name: socless_slack_check_user_in_channel
     description: Check if user is in a channel
     package:
-      include:
-        - functions/check_user_in_channel
+      artifact: .archives/functions/check_user_in_channel.zip
 
   SetChannelTopic:
     handler: lambda_function.lambda_handler
     name: socless_slack_set_channel_topic
     description: Set topic for a channel
     package:
-      include:
-        - functions/set_channel_topic
+      artifact: .archives/functions/set_channel_topic.zip
 
   InviteToChannel:
     handler: lambda_function.lambda_handler
     name: socless_slack_invite_to_channel
     description: invite a slack member to channel
     package:
-      include:
-        - functions/invite_to_channel
+      artifact: .archives/functions/invite_to_channel.zip
 
   ListChannels:
     handler: lambda_function.lambda_handler
     name: socless_slack_list_channels
     description: list all channels
     package:
-      include:
-        - functions/list_channels
+      artifact: .archives/functions/list_channels.zip
 
   UpdateCachedUsers:
     handler: lambda_function.lambda_handler
@@ -193,16 +177,14 @@ functions:
     memorySize: 192
     timeout: 500
     package:
-      include:
-        - functions/_update_cached_users
+      artifact: .archives/functions/_update_cached_users.zip
 
   UploadFile:
     handler: lambda_function.lambda_handler
     name: socless_slack_upload_file
     description: Socless Slack integration to send messages without expecting responses
     package:
-      include:
-        - functions/upload_file
+      artifact: .archives/functions/upload_file.zip
 
 resources:
   - ${{file(resources/dynamodb.yml)}} # Cache usernames dynamodb table
