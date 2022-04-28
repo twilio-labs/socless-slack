@@ -1,25 +1,22 @@
 {
     "name": "socless-slack",
-    "config": {
-        "aws_profile": "default",
-        "dev": "--stage dev --region us-west-2",
-        "prod": "--stage prod --region us-east-1",
-        "sandbox": "--stage sandbox --region us-west-1"
-    },
     "version": "1.0.0",
     "description": "Socless Slack Integration",
     "scripts": {
-        "test": "serverless --version",
-        "dev": "serverless deploy $npm_package_config_dev --aws-profile $npm_package_config_aws_profile --verbose",
-        "stage": "serverless deploy --stage stage --region us-east-2 --verbose",
-        "prod": "serverless deploy $npm_package_config_prod --aws-profile $npm_package_config_aws_profile --verbose",
-        "sandbox": "serverless deploy $npm_package_config_sandbox --aws-profile $npm_package_config_aws_profile --verbose"
+        "test": ". venv/bin/activate && tox",
+        "pretest": "python3 -m venv venv && . venv/bin/activate && pip3 install tox -qq",
+        "posttest": "find . | grep -E '(__pycache__|.pytest_cache|.egg-info)' | xargs rm -rf",
+        "build-funcs": "node node_modules/lambda-packager/build/src/main.js functions -c common -o .archives/functions -u 'no-linux'",
+        "dev": "$npm_execpath run build-funcs && serverless deploy --stage dev --region us-west-2 --verbose",
+        "stage": "$npm_execpath run build-funcs && serverless deploy --stage stage --region us-east-2 --verbose",
+        "prod": "$npm_execpath run build-funcs && serverless deploy --stage prod --region us-east-1 --verbose",
+        "sandbox": "$npm_execpath run build-funcs && serverless deploy --stage sandbox --region us-west-1 --verbose"
     },
     "author": "Ubani Balogun",
     "license": "ISC",
     "dependencies": {
         "serverless": "2.57.0",
-        "sls-apb": "git+https://github.com/twilio-labs/sls-apb.git#1.4.2",
-        "socless_integration_packager": "git+https://github.com/twilio-labs/socless_integration_packager.git#1.0.0"
+        "lambda-packager": "twilio-labs/socless_lambda_packager#v0.1.0",
+        "sls-apb": "twilio-labs/sls-apb#1.4.3"
     }
 }
