@@ -15,8 +15,8 @@
     "author": "Ubani Balogun",
     "license": "ISC",
     "dependencies": {
-        "serverless": "2.57.0",
-        "lambda-packager": "twilio-labs/socless_lambda_packager#v0.1.0",
+        "serverless": "3.0.0",
+        "lambda-packager": "0.1.0",
         "sls-apb": "twilio-labs/sls-apb#1.4.3"
     }
 }
