@@ -3,7 +3,6 @@ from slack_helpers import SlackHelper
 from socless import (
     socless_bootstrap,
     socless_dispatch_outbound_message,
-    socless_template_string,
     init_human_interaction,
 )
 from socless.utils import gen_id
@@ -47,7 +46,7 @@ def handle_state(
         context=context,
         response_desc=response_desc,
     )
-    message = socless_template_string(extended_template, context)
+    message = extended_template
 
     if USE_NEW_INTERACTION:
         init_human_interaction(context, message, message_id)
